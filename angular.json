@@ -47,6 +47,22 @@
         }
       }
     },
+    "ngx-json-editor-core": {
+      "projectType": "library",
+      "root": "projects/ngx-json-editor/core",
+      "sourceRoot": "projects/ngx-json-editor/core/src",
+      "prefix": "ngx",
+      "architect": {
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "tsConfig": "projects/ngx-json-editor/core/tsconfig.spec.json",
+            "polyfills": ["zone.js", "zone.js/testing"],
+            "codeCoverage": true
+          }
+        }
+      }
+    },
     "playground": {
       "projectType": "application",
       "root": "projects/playground",

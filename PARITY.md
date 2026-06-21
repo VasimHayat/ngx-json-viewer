@@ -33,21 +33,21 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
 | Format / Compact | 🟡 | `components/editor/...` `format`/`compact` | `ngx-json-editor.component.spec.ts` |
-| Repair malformed JSON | ⬜ | `core/repair.ts` (Phase 1) | |
-| Real-time parse errors | ⬜ | `core/parse.ts` (Phase 1) | |
+| Repair malformed JSON | 🟡 | `core/repair.ts` (engine ✅, UI Phase 2) | `repair.spec.ts` |
+| Real-time parse errors | 🟡 | `core/parse.ts` (located errors ✅, gutters Phase 2) | `parse.spec.ts` |
 | Configurable indentation | 🟡 | `indentation` input | |
 
 ## 3.4 Cross-mode toolbar
 
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
-| Undo / redo | ⬜ | `state/history.ts` (Phase 2) | |
+| Undo / redo | 🟡 | `core/patch.ts` invert (engine ✅, history Phase 2) | `patch.spec.ts` |
 | Search + highlight | ⬜ | (Phase 4) | |
 | Search & replace (text) | ⬜ | (Phase 4) | |
-| Sort dialog | ⬜ | `core/sort.ts` + dialog (Phase 1/4) | |
+| Sort dialog | 🟡 | `core/sort.ts` (engine ✅, dialog Phase 4) | `sort.spec.ts` |
 | Filter dialog | ⬜ | (Phase 4) | |
-| Transform (JMESPath) | ⬜ | `core/query.ts` (Phase 1) | |
-| JSON Schema validation (Ajv) | ⬜ | `core/schema.ts` (Phase 1) | |
+| Transform (JMESPath) | 🟡 | `core/query.ts` (engine ✅, dialog Phase 4) | `query.spec.ts` |
+| JSON Schema validation (Ajv) | 🟡 | `core/schema.ts` (engine ✅, surfacing Phase 4) | `schema.spec.ts` |
 | Status bar | 🟡 | `components/editor/...` statusbar | |
 
 ## 3.5 Document operations
@@ -57,7 +57,7 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | Copy doc / subtree / path | ⬜ | (Phase 5) | |
 | Import (paste/file/URL) | ⬜ | `adapters/` (Phase 5) | |
 | Export (download/clipboard) | ⬜ | `adapters/` (Phase 5) | |
-| Compare / structural diff | ⬜ | `core/diff.ts` (Phase 1/5) | |
+| Compare / structural diff | 🟡 | `core/diff.ts` (engine ✅, UI Phase 5) | `diff.spec.ts` |
 
 ## 3.6 UX / quality-of-life
 
@@ -73,6 +73,7 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 
 | Item | Status | Implementation | Tests |
 | --- | --- | --- | --- |
+| Framework-free core engine (parse, repair, patch, diff, sort, query, schema) | ✅ | `core/src/lib/*` — 93.8% stmts, 100% fns, 84.9% branches (75 specs) | `core/**/*.spec.ts` |
 | Framework-free core types | ✅ | `core/types.ts`, `value-type.ts`, `json-pointer.ts`, `patch-types.ts` | `*.spec.ts` |
 | Library builds (ng-packagr, 2 entry points) | ✅ | `ng-package.json` + `core/ng-package.json` | CI build step |
 | Playground renders the editor | ✅ | `projects/playground` | build + component spec |

@@ -57,6 +57,6 @@ describe('NgxJsonEditorComponent', () => {
     expect(component.get()).toEqual({ text: '{"a":1,"b":[2,3]}' });
     component.format();
     const got = component.get();
-    expect('json' in got ? got.json : null).toEqual({ a: 1, b: [2, 3] });
+    expect(('json' in got ? got.json : null) as unknown).toEqual({ a: 1, b: [2, 3] });
   });
 });

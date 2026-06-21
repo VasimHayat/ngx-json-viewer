@@ -1,4 +1,10 @@
-import { JsonPatch, JsonPath, JsonValue, ValidationError } from 'ngx-json-editor/core';
+import {
+  JsonPatch,
+  JsonPath,
+  JsonValue,
+  RepairResult,
+  ValidationError,
+} from 'ngx-json-editor/core';
 
 /** The three runtime-switchable editor modes. */
 export type EditorMode = 'tree' | 'text' | 'table';
@@ -24,19 +30,8 @@ export function isTextContent(c: JsonEditorContent): c is { text: string; json?:
   );
 }
 
-/** Result of a one-click repair of malformed JSON. */
-export interface RepairResult {
-  /** Whether the text is valid JSON after the repair attempt. */
-  readonly ok: boolean;
-  /** The repaired (or original, if nothing changed) text. */
-  readonly text: string;
-  /** Did the repair modify the input? */
-  readonly changed: boolean;
-  /** Human-readable list of fixes applied, e.g. "Removed trailing commas". */
-  readonly applied: readonly string[];
-  /** Present when the text could not be coerced into valid JSON. */
-  readonly error?: string;
-}
+/** Re-exported from core so consumers can import it from the main entry point. */
+export type { RepairResult };
 
 /**
  * Emitted on every content change. `patch` is the RFC 6902 diff that produced
