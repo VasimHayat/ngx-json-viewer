@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { JsonEditorContent, NgxJsonWorkspaceComponent } from 'ngx-json-editor';
 
 /** Left demo document (a config-style payload). */
@@ -37,6 +37,12 @@ const RIGHT: JsonEditorContent = {
   },
 };
 
+interface PresetSwatch {
+  readonly id: string;
+  readonly label: string;
+  readonly color: string;
+}
+
 @Component({
   selector: 'app-root',
   imports: [NgxJsonWorkspaceComponent],
@@ -47,10 +53,24 @@ const RIGHT: JsonEditorContent = {
 export class App {
   readonly left = signal<JsonEditorContent>(LEFT);
   readonly right = signal<JsonEditorContent>(RIGHT);
-  readonly theme = signal<'light' | 'dark' | 'auto'>('light');
-  readonly themes = ['light', 'dark', 'auto'] as const;
+  readonly dark = signal<boolean>(false);
+  readonly preset = signal<string>('green');
 
-  toggleTheme(value: string): void {
-    this.theme.set(value as 'light' | 'dark' | 'auto');
+  readonly theme = computed<'light' | 'dark'>(() => (this.dark() ? 'dark' : 'light'));
+
+  readonly presets: readonly PresetSwatch[] = [
+    { id: 'green', label: 'Green', color: '#4f9d4f' },
+    { id: 'blue', label: 'Blue', color: '#3b82f6' },
+    { id: 'violet', label: 'Violet', color: '#7c3aed' },
+    { id: 'slate', label: 'Slate', color: '#475569' },
+    { id: 'contrast', label: 'Contrast', color: '#111111' },
+  ];
+
+  selectPreset(id: string): void {
+    this.preset.set(id);
+  }
+
+  toggleDark(): void {
+    this.dark.update((v) => !v);
   }
 }

@@ -43,7 +43,12 @@
   gap: var(--nje-gap);
   height: var(--nje-menu-height);
   padding: 0 10px;
-  background: linear-gradient(180deg, var(--nje-menu-hover), var(--nje-menu-bg) 55%, var(--nje-menu-bg-strong));
+  background: linear-gradient(
+    180deg,
+    var(--nje-menu-hover),
+    var(--nje-menu-bg) 55%,
+    var(--nje-menu-bg-strong)
+  );
   color: var(--nje-menu-fg);
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   flex: 0 0 auto;

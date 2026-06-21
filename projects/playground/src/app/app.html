@@ -1,13 +1,41 @@
 <header class="pg-header">
-  <h1 class="pg-title">ngx-json-editor <span class="pg-badge">playground</span></h1>
-  <label class="pg-field">
-    <span>Theme</span>
-    <select [value]="theme()" (change)="toggleTheme($any($event.target).value)">
-      @for (t of themes; track t) {
-        <option [value]="t">{{ t }}</option>
+  <div class="pg-brand">
+    <span class="pg-logo" aria-hidden="true">{ }</span>
+    <div>
+      <h1 class="pg-title">ngx-json-editor</h1>
+      <p class="pg-subtitle">Tree · Text · Table · Compare</p>
+    </div>
+  </div>
+
+  <div class="pg-controls">
+    <div class="pg-presets" role="group" aria-label="Theme preset">
+      @for (p of presets; track p.id) {
+        <button
+          type="button"
+          class="pg-swatch"
+          [class.pg-swatch--active]="preset() === p.id"
+          [style.background]="p.color"
+          [attr.aria-pressed]="preset() === p.id"
+          [title]="p.label"
+          (click)="selectPreset(p.id)"
+        >
+          @if (preset() === p.id) {
+            <span class="pg-swatch-check" aria-hidden="true">✓</span>
+          }
+        </button>
       }
-    </select>
-  </label>
+    </div>
+
+    <button
+      type="button"
+      class="pg-dark-toggle"
+      [class.pg-dark-toggle--on]="dark()"
+      [attr.aria-pressed]="dark()"
+      (click)="toggleDark()"
+    >
+      {{ dark() ? '🌙 Dark' : '☀ Light' }}
+    </button>
+  </div>
 </header>
 
 <main class="pg-main">
@@ -17,5 +45,6 @@
     leftTitle="New document 2"
     rightTitle="New document 1"
     [theme]="theme()"
+    [themePreset]="preset()"
   />
 </main>
