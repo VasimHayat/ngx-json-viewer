@@ -35,8 +35,15 @@ describe('NgxJsonEditorComponent', () => {
     expect(host.querySelector('.nje-empty')?.textContent?.trim()).toBe('Empty document');
   });
 
-  it('renders a formatted preview for non-empty content', () => {
+  it('renders the tree for non-empty content in tree mode', () => {
     fixture.componentRef.setInput('content', { json: { a: 1 } });
+    fixture.detectChanges();
+    expect(host.querySelector('ngx-json-tree')).toBeTruthy();
+  });
+
+  it('renders a formatted preview in table mode (until table lands)', () => {
+    fixture.componentRef.setInput('content', { json: { a: 1 } });
+    fixture.componentRef.setInput('mode', 'table');
     fixture.detectChanges();
     expect(host.querySelector('.nje-preview')?.textContent).toContain('"a": 1');
   });

@@ -28,6 +28,7 @@ import {
 import { JsonSchema } from '../../models/schema';
 import { EditorStore } from '../../state/editor-store';
 import { TextModeComponent } from '../text/text-mode.component';
+import { TreeModeComponent } from '../tree/tree-mode.component';
 
 /**
  * `<ngx-json-editor>` — the single primary component of the library.
@@ -39,7 +40,7 @@ import { TextModeComponent } from '../text/text-mode.component';
  */
 @Component({
   selector: 'ngx-json-editor',
-  imports: [ButtonModule, TooltipModule, TextModeComponent],
+  imports: [ButtonModule, TooltipModule, TextModeComponent, TreeModeComponent],
   providers: [EditorStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ngx-json-editor.component.html',
@@ -180,7 +181,7 @@ export class NgxJsonEditorComponent {
 
   // ── Imperative API (call via a template ref) ──────────────────────────────
   expandAll(): void {
-    /* Implemented in Phase 3 (tree mode). */
+    this.store.expandAllContainers();
   }
 
   collapseAll(): void {

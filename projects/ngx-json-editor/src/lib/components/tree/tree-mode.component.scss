@@ -1,0 +1,157 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.nje-tree-vp {
+  height: 100%;
+  width: 100%;
+  font-family: var(--nje-font-mono);
+  font-size: var(--nje-font-size);
+}
+
+.nje-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--nje-row-height);
+  line-height: var(--nje-row-height);
+  padding-right: 8px;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+
+  &:hover {
+    background: var(--nje-bg-hover);
+  }
+
+  &--selected {
+    background: var(--nje-bg-selected);
+  }
+
+  &--error {
+    box-shadow: inset 2px 0 0 var(--nje-error);
+  }
+}
+
+.nje-twisty {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  min-width: 16px;
+  height: 100%;
+  cursor: pointer;
+  color: var(--nje-fg-faint);
+  // Reset button chrome (twisty is a <button> for keyboard a11y).
+  appearance: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+
+  &:focus-visible {
+    outline: 2px solid var(--nje-focus-ring);
+    outline-offset: -2px;
+  }
+}
+
+.nje-twisty-icon {
+  font-size: 9px;
+  transition: transform 0.1s ease;
+
+  &--open {
+    transform: rotate(90deg);
+  }
+}
+
+.nje-key {
+  color: var(--nje-type-key);
+  font-weight: 500;
+
+  &--index {
+    color: var(--nje-fg-faint);
+    font-weight: 400;
+  }
+}
+
+.nje-colon {
+  color: var(--nje-fg-muted);
+  margin-right: 4px;
+}
+
+.nje-summary {
+  color: var(--nje-fg-muted);
+  font-style: italic;
+}
+
+.nje-value {
+  &--editable {
+    cursor: text;
+  }
+
+  &--toggle {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    // Reset button chrome (boolean toggle is a <button>).
+    appearance: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
+
+    &:focus-visible {
+      outline: 2px solid var(--nje-focus-ring);
+      outline-offset: 1px;
+    }
+  }
+}
+
+.nje-type-string {
+  color: var(--nje-type-string);
+}
+.nje-type-number {
+  color: var(--nje-type-number);
+}
+.nje-type-boolean {
+  color: var(--nje-type-boolean);
+}
+.nje-type-null {
+  color: var(--nje-type-null);
+  font-style: italic;
+}
+.nje-type-object,
+.nje-type-array {
+  color: var(--nje-type-object);
+}
+
+.nje-edit {
+  font: inherit;
+  border: 1px solid var(--nje-accent);
+  border-radius: var(--nje-radius-sm);
+  padding: 0 4px;
+  margin: 0 2px;
+  background: var(--nje-bg-raised);
+  color: var(--nje-fg);
+  min-width: 60px;
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--nje-bg-selected);
+  }
+}
+
+.nje-error-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--nje-error);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}

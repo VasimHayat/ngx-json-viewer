@@ -9,7 +9,7 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
-| Tree mode | ⬜ | `components/tree/` (Phase 3) | |
+| Tree mode | ✅ | `components/tree/` (virtualized CDK scroll, lazy via expansion) | `tree-model.spec.ts`, tree component spec |
 | Text/Code mode | ✅ | `components/text/` + `adapters/codemirror.adapter.ts` (CM6: highlight, line numbers, bracket match, fold, gutters) | `editor-store.spec.ts`, component spec |
 | Table mode | ⬜ | `components/table/` (Phase 4) | |
 | Runtime mode switch | ✅ | editor component `setMode` + `EditorStore.mode` | `ngx-json-editor.component.spec.ts` |
@@ -18,15 +18,15 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
-| Inline key/value edit | ⬜ | (Phase 3) | |
-| Type-aware value editors | ⬜ | (Phase 3) | |
-| Change value type | ⬜ | `core/value-type.ts` `coerceToType` | `value-type.spec.ts` |
-| Context menu actions | ⬜ | (Phase 3) | |
-| Drag-and-drop | ⬜ | (Phase 3) | |
-| Multi-select + bulk | ⬜ | (Phase 3) | |
-| Color/link value renderers | ⬜ | `models/config.ts` `ValueRenderer` | |
-| Expand/collapse + persistence | ⬜ | (Phase 3) | |
-| Inline validation markers | ⬜ | (Phase 4) | |
+| Inline key/value edit | ✅ | tree component + `EditorStore.updateValueAt`/`renameKeyAt` | `editor-store.spec.ts` |
+| Type-aware value editors | 🟡 | string/number/bool/null inline; object/array via type change | `editor-store.spec.ts` |
+| Change value type | ✅ | `EditorStore.changeTypeAt` + `core/coerceToType` (tree dropdown via menu — Phase 3b) | `value-type.spec.ts`, `editor-store.spec.ts` |
+| Context menu actions | ⬜ | store methods ready (remove/duplicate/append); menu UI Phase 3b | `editor-store.spec.ts` |
+| Drag-and-drop | ⬜ | (Phase 3b) | |
+| Multi-select + bulk | ⬜ | (Phase 3b) | |
+| Color/link value renderers | ⬜ | `models/config.ts` `ValueRenderer` (Phase 3b) | |
+| Expand/collapse + persistence | ✅ | `EditorStore.expanded` (pointer-keyed, preserved across modes) + expand/collapse-all | `tree-model.spec.ts`, `editor-store.spec.ts` |
+| Inline validation markers | ✅ | tree row error markers (parse + schema, incl. ancestors) | tree component |
 
 ## 3.3 Text mode
 

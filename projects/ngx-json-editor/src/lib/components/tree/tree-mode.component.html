@@ -1,0 +1,90 @@
+<cdk-virtual-scroll-viewport
+  [itemSize]="rowHeight"
+  class="nje-tree-vp"
+  role="tree"
+  aria-label="JSON tree"
+>
+  <div
+    *cdkVirtualFor="let row of rows(); trackBy: trackRow"
+    class="nje-tree-row"
+    role="treeitem"
+    tabindex="0"
+    [class.nje-tree-row--selected]="isSelected(row)"
+    [class.nje-tree-row--error]="hasError(row)"
+    [attr.aria-level]="row.depth + 1"
+    [attr.aria-expanded]="row.expandable ? row.expanded : null"
+    [attr.aria-selected]="isSelected(row)"
+    [style.padding-left.px]="indentPx(row.depth)"
+    (click)="select(row)"
+    (keydown)="onRowKeydown(row, $event)"
+  >
+    <!-- Expand/collapse twisty -->
+    @if (row.expandable) {
+      <button
+        type="button"
+        class="nje-twisty"
+        [attr.aria-label]="row.expanded ? 'Collapse' : 'Expand'"
+        (click)="toggle(row, $event)"
+      >
+        <span class="nje-twisty-icon" [class.nje-twisty-icon--open]="row.expanded">▶</span>
+      </button>
+    } @else {
+      <span class="nje-twisty"></span>
+    }
+
+    <!-- Key -->
+    @if (row.key !== null) {
+      @if (isEditing(row, 'key')) {
+        <input
+          class="nje-edit nje-edit--key"
+          [(ngModel)]="draft"
+          (keydown)="onEditKeydown(row, $event)"
+          (blur)="commit(row)"
+          (click)="$event.stopPropagation()"
+          ngxAutofocus
+        />
+      } @else {
+        <span
+          class="nje-key"
+          [class.nje-key--index]="!isEditableKey(row)"
+          (dblclick)="beginEditKey(row, $event)"
+          >{{ keyLabel(row) }}</span
+        >
+      }
+      <span class="nje-colon">:</span>
+    }
+
+    <!-- Value -->
+    @if (row.type === 'object' || row.type === 'array') {
+      <span class="nje-summary nje-type-{{ row.type }}">{{ summary(row) }}</span>
+    } @else if (isEditing(row, 'value')) {
+      <input
+        class="nje-edit nje-edit--value"
+        [(ngModel)]="draft"
+        (keydown)="onEditKeydown(row, $event)"
+        (blur)="commit(row)"
+        (click)="$event.stopPropagation()"
+        ngxAutofocus
+      />
+    } @else if (row.type === 'boolean') {
+      <button
+        type="button"
+        class="nje-value nje-type-boolean nje-value--toggle"
+        (click)="toggleBoolean(row, $event)"
+      >
+        {{ displayValue(row) }}
+      </button>
+    } @else {
+      <span
+        class="nje-value nje-type-{{ row.type }}"
+        [class.nje-value--editable]="isEditableValue(row)"
+        (dblclick)="beginEditValue(row, $event)"
+        >{{ row.type === 'string' ? '"' + displayValue(row) + '"' : displayValue(row) }}</span
+      >
+    }
+
+    @if (hasError(row)) {
+      <span class="nje-error-marker" aria-hidden="true">!</span>
+    }
+  </div>
+</cdk-virtual-scroll-viewport>

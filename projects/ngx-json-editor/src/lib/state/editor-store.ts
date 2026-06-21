@@ -4,13 +4,18 @@ import {
   JsonPatch,
   JsonPath,
   JsonValue,
+  JsonValueType,
   ParseResult,
   RepairResult,
   SchemaValidator,
   ValidationError,
   applyPatch,
+  coerceToType,
   createSchemaValidator,
   diffToPatch,
+  getAtPath,
+  isJsonArray,
+  isJsonObject,
   ok,
   parseJson,
   pathToPointer,
@@ -18,6 +23,7 @@ import {
 } from 'ngx-json-editor/core';
 import { EditorMode, JsonEditorContent, isTextContent } from '../models/editor-content';
 import { JsonSchema, ValidatorFn } from '../models/schema';
+import { allContainerPointers } from './tree-model';
 
 interface HistoryEntry {
   readonly before: JsonEditorContent;
@@ -186,6 +192,114 @@ export class EditorStore {
     return this.expanded().has(pathToPointer(path));
   }
 
+  /** Expand every container node in the current document. */
+  expandAllContainers(): void {
+    const value = this.json();
+    if (value !== undefined) {
+      this.expanded.set(allContainerPointers(value));
+    }
+  }
+
+  // ── Structured tree edits (return an error value, never throw) ──────────────
+  /** Replace the value at `path`. */
+  updateValueAt(path: JsonPath, value: JsonValue): ValidationError | null {
+    return this.applyJsonPatch([{ op: 'replace', path: pathToPointer(path), value }]);
+  }
+
+  /** Change the type of the value at `path`, coercing the existing value. */
+  changeTypeAt(path: JsonPath, type: JsonValueType): ValidationError | null {
+    const current = getAtPath(this.json() ?? null, path);
+    return this.updateValueAt(path, coerceToType(current ?? null, type));
+  }
+
+  /** Remove the node at `path`. */
+  removeAt(path: JsonPath): ValidationError | null {
+    if (path.length === 0) {
+      return {
+        path,
+        message: 'Cannot remove the document root',
+        severity: 'error',
+        source: 'edit',
+      };
+    }
+    return this.applyJsonPatch([{ op: 'remove', path: pathToPointer(path) }]);
+  }
+
+  /**
+   * Rename an object member, preserving property order (RFC 6902 can't express
+   * a rename, so we rebuild the parent object and replace it).
+   */
+  renameKeyAt(parentPath: JsonPath, oldKey: string, newKey: string): ValidationError | null {
+    if (oldKey === newKey) {
+      return null;
+    }
+    const parent = getAtPath(this.json() ?? null, parentPath);
+    if (parent === undefined || !isJsonObject(parent)) {
+      return {
+        path: parentPath,
+        message: 'Parent is not an object',
+        severity: 'error',
+        source: 'edit',
+      };
+    }
+    if (Object.prototype.hasOwnProperty.call(parent, newKey)) {
+      return {
+        path: parentPath,
+        message: `Key "${newKey}" already exists`,
+        severity: 'error',
+        source: 'edit',
+      };
+    }
+    const rebuilt: Record<string, JsonValue> = {};
+    for (const [k, v] of Object.entries(parent)) {
+      rebuilt[k === oldKey ? newKey : k] = v;
+    }
+    return this.applyJsonPatch([
+      { op: 'replace', path: pathToPointer(parentPath), value: rebuilt },
+    ]);
+  }
+
+  /** Append a child to the container at `path` (object key or array item). */
+  appendChild(path: JsonPath, type: JsonValueType, key?: string): ValidationError | null {
+    const container = getAtPath(this.json() ?? null, path) ?? null;
+    const value = coerceToType(null, type);
+    if (isJsonArray(container)) {
+      return this.applyJsonPatch([{ op: 'add', path: `${pathToPointer(path)}/-`, value }]);
+    }
+    if (isJsonObject(container)) {
+      const name = uniqueKey(container, key ?? 'newKey');
+      return this.applyJsonPatch([{ op: 'add', path: `${pathToPointer([...path, name])}`, value }]);
+    }
+    return { path, message: 'Target is not a container', severity: 'error', source: 'edit' };
+  }
+
+  /** Duplicate the node at `path` next to itself. */
+  duplicateAt(path: JsonPath): ValidationError | null {
+    if (path.length === 0) {
+      return { path, message: 'Cannot duplicate the root', severity: 'error', source: 'edit' };
+    }
+    const value = getAtPath(this.json() ?? null, path);
+    if (value === undefined) {
+      return { path, message: 'Nothing to duplicate', severity: 'error', source: 'edit' };
+    }
+    const parentPath = path.slice(0, -1);
+    const lastKey = path[path.length - 1];
+    const parent = getAtPath(this.json() ?? null, parentPath) ?? null;
+    if (isJsonArray(parent)) {
+      const index = Number(lastKey) + 1;
+      return this.applyJsonPatch([
+        { op: 'add', path: pathToPointer([...parentPath, index]), value },
+      ]);
+    }
+    if (isJsonObject(parent)) {
+      const name = uniqueKey(parent, `${lastKey}_copy`);
+      return this.applyJsonPatch([
+        { op: 'add', path: pathToPointer([...parentPath, name]), value },
+      ]);
+    }
+    return { path, message: 'Parent is not a container', severity: 'error', source: 'edit' };
+  }
+
   // ── Edits ─────────────────────────────────────────────────────────────────
   /** Set raw text (text mode). Records an undoable history entry. */
   setText(text: string): void {
@@ -301,6 +415,18 @@ export class EditorStore {
 function stringify(value: JsonValue, indentation: number | 'tab'): string {
   const indent = indentation === 'tab' ? '\t' : indentation;
   return JSON.stringify(value, null, indent);
+}
+
+/** Pick a key not already present in `obj`, suffixing with a counter if needed. */
+function uniqueKey(obj: Record<string, JsonValue>, base: string): string {
+  if (!Object.prototype.hasOwnProperty.call(obj, base)) {
+    return base;
+  }
+  let i = 2;
+  while (Object.prototype.hasOwnProperty.call(obj, `${base}${i}`)) {
+    i++;
+  }
+  return `${base}${i}`;
 }
 
 /** Normalize content: ensure exactly one of `json`/`text` is present. */

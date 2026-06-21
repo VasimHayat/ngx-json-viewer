@@ -104,8 +104,9 @@
     outline-offset: -2px;
   }
 
-  // Text mode: CodeMirror manages its own scrolling and padding.
-  &[data-mode='text'] {
+  // Text and tree modes manage their own scrolling (CodeMirror / CDK viewport).
+  &[data-mode='text'],
+  &[data-mode='tree'] {
     padding: 0;
     overflow: hidden;
   }

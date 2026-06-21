@@ -119,4 +119,56 @@ describe('EditorStore', () => {
     store.toggleExpanded(['a']);
     expect(store.isExpanded(['a'])).toBeFalse();
   });
+
+  describe('structured tree edits', () => {
+    beforeEach(() => store.replaceDocument({ json: { a: 1, b: { c: 2 }, list: [10, 20] } }));
+
+    it('updates a value at a path', () => {
+      expect(store.updateValueAt(['b', 'c'], 99)).toBeNull();
+      expect(store.json() as unknown).toEqual({ a: 1, b: { c: 99 }, list: [10, 20] });
+    });
+
+    it('changes a value type, coercing', () => {
+      store.changeTypeAt(['a'], 'string');
+      expect(store.json() as unknown).toEqual({ a: '1', b: { c: 2 }, list: [10, 20] });
+      store.changeTypeAt(['a'], 'array');
+      const j = store.json() as { a: unknown };
+      expect(Array.isArray(j.a)).toBeTrue();
+    });
+
+    it('renames an object key, preserving order', () => {
+      expect(store.renameKeyAt([], 'a', 'alpha')).toBeNull();
+      expect(Object.keys(store.json() as object)).toEqual(['alpha', 'b', 'list']);
+    });
+
+    it('refuses to rename onto an existing key', () => {
+      expect(store.renameKeyAt([], 'a', 'b')).not.toBeNull();
+    });
+
+    it('removes a node', () => {
+      store.removeAt(['b']);
+      expect(store.json() as unknown).toEqual({ a: 1, list: [10, 20] });
+      expect(store.removeAt([])).not.toBeNull(); // cannot remove root
+    });
+
+    it('appends children to objects and arrays', () => {
+      store.appendChild(['list'], 'number');
+      expect((store.json() as { list: number[] }).list.length).toBe(3);
+      store.appendChild([], 'string', 'extra');
+      expect('extra' in (store.json() as object)).toBeTrue();
+    });
+
+    it('duplicates array items and object members', () => {
+      store.duplicateAt(['list', 0]);
+      expect((store.json() as { list: number[] }).list).toEqual([10, 10, 20]);
+      store.duplicateAt(['a']);
+      expect('a_copy' in (store.json() as object)).toBeTrue();
+    });
+
+    it('expands all containers', () => {
+      store.expandAllContainers();
+      expect(store.isExpanded(['b'])).toBeTrue();
+      expect(store.isExpanded(['list'])).toBeTrue();
+    });
+  });
 });

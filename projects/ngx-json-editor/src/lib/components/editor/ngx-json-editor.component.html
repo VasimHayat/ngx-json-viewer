@@ -16,6 +16,24 @@
   <div class="nje-toolbar-spacer"></div>
 
   <div class="nje-toolbar-actions">
+    @if (store.mode() === 'tree' && features().expandCollapseAll !== false) {
+      <p-button
+        [label]="strings().expandAll"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().expandAll"
+        (onClick)="expandAll()"
+      />
+      <p-button
+        [label]="strings().collapseAll"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().collapseAll"
+        (onClick)="collapseAll()"
+      />
+    }
     @if (features().undoRedo !== false) {
       <p-button
         [label]="strings().undo"
@@ -74,9 +92,15 @@
     @case ('text') {
       <ngx-json-text />
     }
+    @case ('tree') {
+      @if (store.isEmpty()) {
+        <div class="nje-empty">{{ strings().emptyDocument }}</div>
+      } @else {
+        <ngx-json-tree />
+      }
+    }
     @default {
-      <!-- Tree (Phase 3) and Table (Phase 4) render here. Until then, show a
-           read-only formatted preview so the document is always visible. -->
+      <!-- Table mode (Phase 4) renders here. Until then, a formatted preview. -->
       @if (store.isEmpty()) {
         <div class="nje-empty">{{ strings().emptyDocument }}</div>
       } @else {
