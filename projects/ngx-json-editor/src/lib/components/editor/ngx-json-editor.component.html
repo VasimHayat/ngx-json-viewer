@@ -1,0 +1,57 @@
+<div class="nje-toolbar" role="toolbar" [attr.aria-label]="strings().modeLabel">
+  <div class="nje-mode-switch" role="group" [attr.aria-label]="strings().modeLabel">
+    @for (m of ['tree', 'text', 'table']; track m) {
+      <button
+        type="button"
+        class="nje-mode-btn"
+        [class.nje-mode-btn--active]="activeMode() === m"
+        [attr.aria-pressed]="activeMode() === m"
+        (click)="setMode($any(m))"
+      >
+        {{
+          m === 'tree'
+            ? strings().modeTree
+            : m === 'text'
+              ? strings().modeText
+              : strings().modeTable
+        }}
+      </button>
+    }
+  </div>
+
+  <div class="nje-toolbar-spacer"></div>
+
+  <div class="nje-toolbar-actions">
+    <p-button
+      [label]="strings().format"
+      severity="secondary"
+      size="small"
+      [text]="true"
+      [pTooltip]="strings().format"
+      (onClick)="format()"
+    />
+    <p-button
+      [label]="strings().compact"
+      severity="secondary"
+      size="small"
+      [text]="true"
+      [pTooltip]="strings().compact"
+      (onClick)="compact()"
+    />
+  </div>
+</div>
+
+<div #body class="nje-body" tabindex="0" [attr.data-mode]="activeMode()">
+  @if (isEmpty()) {
+    <div class="nje-empty">{{ strings().emptyDocument }}</div>
+  } @else {
+    <!-- Phase 0 placeholder body. Tree/text/table projections replace this. -->
+    <pre class="nje-preview">{{ displayText() }}</pre>
+  }
+</div>
+
+<div class="nje-statusbar" role="status" aria-live="polite">
+  <span class="nje-status-mode">{{ activeMode() }}</span>
+  <span class="nje-status-sep">·</span>
+  <span class="nje-status-size">{{ displayText().length }} chars</span>
+</div>

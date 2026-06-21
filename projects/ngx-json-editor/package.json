@@ -1,0 +1,41 @@
+{
+  "name": "ngx-json-editor",
+  "version": "0.1.0",
+  "description": "Production-grade, themeable JSON editor for Angular (tree / text / table modes) with feature parity to jsoneditoronline.org.",
+  "keywords": [
+    "angular",
+    "json",
+    "json-editor",
+    "json-viewer",
+    "tree",
+    "codemirror",
+    "primeng",
+    "jmespath",
+    "json-schema"
+  ],
+  "license": "MIT",
+  "author": "ngx-json-editor contributors",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ngx-json-editor/ngx-json-editor"
+  },
+  "sideEffects": false,
+  "peerDependencies": {
+    "@angular/common": "^20.0.0 || ^21.0.0",
+    "@angular/core": "^20.0.0 || ^21.0.0",
+    "@angular/cdk": "^20.0.0 || ^21.0.0",
+    "primeng": "^20.0.0 || ^21.0.0",
+    "@primeng/themes": "^20.0.0 || ^21.0.0",
+    "ajv": "^8.0.0",
+    "jmespath": "^0.16.0"
+  },
+  "peerDependenciesMeta": {
+    "primeng": { "optional": false },
+    "@primeng/themes": { "optional": true },
+    "ajv": { "optional": true },
+    "jmespath": { "optional": true }
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  }
+}

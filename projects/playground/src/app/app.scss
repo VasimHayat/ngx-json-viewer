@@ -1,0 +1,89 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.pg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.pg-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pg-badge {
+  font-size: 11px;
+  font-weight: 500;
+  background: #2563eb;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
+.pg-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pg-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+
+  select {
+    padding: 4px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    font: inherit;
+  }
+}
+
+.pg-btn {
+  padding: 5px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+}
+
+.pg-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px;
+}
+
+.pg-editor {
+  height: 100%;
+  display: block;
+}
+
+.pg-footer {
+  padding: 8px 20px;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+}

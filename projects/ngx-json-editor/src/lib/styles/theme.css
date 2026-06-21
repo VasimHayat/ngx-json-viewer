@@ -1,0 +1,22 @@
+/*
+ * Optional host-level theme overrides for ngx-json-editor.
+ *
+ * The component already ships its own light/dark tokens scoped to its host
+ * element, so importing this file is NOT required. Use it only when you want to
+ * override tokens globally or theme several editor instances at once. Set any
+ * `--nje-*` custom property on a parent element (or :root) to override.
+ *
+ * Example (host app global styles):
+ *   @import 'ngx-json-editor/styles/theme.css';
+ *   :root { --nje-accent: #7c3aed; --nje-radius: 10px; }
+ */
+
+:root {
+  --nje-accent: #2563eb;
+  --nje-radius: 6px;
+}
+
+/* Force dark tokens on any subtree by adding class `nje-theme-dark`. */
+.nje-theme-dark {
+  color-scheme: dark;
+}

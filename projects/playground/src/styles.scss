@@ -1,0 +1,30 @@
+/* Playground global styles. */
+
+/* Tailwind (prefixed with `tw-` — see tailwind.config.js). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* PrimeIcons for toolbar glyphs. */
+@import 'primeicons/primeicons.css';
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}

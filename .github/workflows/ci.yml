@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  quality:
+    name: Lint · Typecheck · Build · Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Lint (ESLint + Angular ESLint)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests (core + library) with coverage
+        run: npm run test:lib
+
+      - name: Build library
+        run: npm run build:lib
+
+      - name: Build playground
+        run: npm run build:playground
+
+      - name: Pack (verify publishable artifact)
+        run: npm run pack:lib
+
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    # Enabled once Playwright specs land (Phase 6). Skipped until then.
+    if: ${{ false }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
