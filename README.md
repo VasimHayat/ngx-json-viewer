@@ -60,25 +60,25 @@ export class MyEditor {
 
 ## Public API (summary)
 
-| Input | Type | Default |
-| --- | --- | --- |
-| `content` (two-way) | `{ json } \| { text }` | `{ json: null }` |
-| `mode` | `'tree' \| 'text' \| 'table'` | `'tree'` |
-| `readOnly` | `boolean` | `false` |
-| `schema` / `schemaRefs` | `JsonSchema` / map | `null` |
-| `validator` | `ValidatorFn` | `null` |
-| `indentation` | `number \| 'tab'` | `2` |
-| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` |
-| `i18n` | `Partial<EditorI18n>` | `{}` |
-| `config` | `NgxJsonEditorConfig` | `{}` |
+| Input                   | Type                          | Default          |
+| ----------------------- | ----------------------------- | ---------------- |
+| `content` (two-way)     | `{ json } \| { text }`        | `{ json: null }` |
+| `mode`                  | `'tree' \| 'text' \| 'table'` | `'tree'`         |
+| `readOnly`              | `boolean`                     | `false`          |
+| `schema` / `schemaRefs` | `JsonSchema` / map            | `null`           |
+| `validator`             | `ValidatorFn`                 | `null`           |
+| `indentation`           | `number \| 'tab'`             | `2`              |
+| `theme`                 | `'light' \| 'dark' \| 'auto'` | `'auto'`         |
+| `i18n`                  | `Partial<EditorI18n>`         | `{}`             |
+| `config`                | `NgxJsonEditorConfig`         | `{}`             |
 
-| Output | Payload |
-| --- | --- |
-| `documentChange` | `{ content, errors, patch }` (rich change event) |
-| `modeChange` | `EditorMode` |
-| `errorsChange` | `ValidationError[]` |
-| `selectionChange` | `JsonPath \| null` |
-| `ready` | `void` |
+| Output            | Payload                                          |
+| ----------------- | ------------------------------------------------ |
+| `documentChange`  | `{ content, errors, patch }` (rich change event) |
+| `modeChange`      | `EditorMode`                                     |
+| `errorsChange`    | `ValidationError[]`                              |
+| `selectionChange` | `JsonPath \| null`                               |
+| `ready`           | `void`                                           |
 
 > `[(content)]` two-way binding uses the model's implicit `contentChange`; the
 > rich event with errors/patch is `(documentChange)`. See
@@ -88,9 +88,41 @@ Imperative methods (via a template ref): `expandAll`, `collapseAll`, `format`,
 `compact`, `repair`, `undo`, `redo`, `focus`, `validate`, `get`, `set`,
 `transform`.
 
+## Keyboard shortcuts
+
+| Shortcut                            | Action                         |
+| ----------------------------------- | ------------------------------ |
+| `Ctrl/Cmd + Z`                      | Undo                           |
+| `Ctrl/Cmd + Shift + Z` / `Ctrl + Y` | Redo                           |
+| `Ctrl/Cmd + F`                      | Open find bar                  |
+| `Alt + Shift + F`                   | Format (beautify)              |
+| `Alt + Shift + C`                   | Compact (minify)               |
+| `Enter` / `Esc`                     | Commit / cancel an inline edit |
+| `Delete`                            | Remove selected node(s) (tree) |
+| `←` `→`                             | Collapse / expand a tree node  |
+
+In **text mode** the CodeMirror editor owns its own undo/redo and find/replace
+(`Ctrl+F` / `Ctrl+H`); the global shortcuts above defer to it while it's focused.
+
+## Theming
+
+Every color and size is a `--nje-*` CSS custom property set on the component
+host (light defaults + a dark override). Re-theme without recompiling:
+
+```css
+ngx-json-editor {
+  --nje-accent: #7c3aed;
+  --nje-radius: 10px;
+  --nje-font-mono: 'JetBrains Mono', monospace;
+}
+```
+
+Set `theme="dark"` / `"light"` / `"auto"` (follows OS) on the component.
+
 ## Documentation
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — design, state/patch model, adapters.
+- [PERF.md](./PERF.md) — performance budgets & measured numbers.
 - [PARITY.md](./PARITY.md) — feature → code → test matrix.
 - [THIRD_PARTY.md](./THIRD_PARTY.md) — dependencies & licenses.
 

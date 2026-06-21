@@ -6,6 +6,7 @@ import {
   OnDestroy,
   effect,
   inject,
+  input,
   viewChild,
 } from '@angular/core';
 import { EditorStore } from '../../state/editor-store';
@@ -45,6 +46,9 @@ export class TextModeComponent implements AfterViewInit, OnDestroy {
   private readonly injectedAdapter = inject(CODE_EDITOR_ADAPTER, { optional: true });
   private readonly hostRef = viewChild.required<ElementRef<HTMLElement>>('host');
 
+  /** Dark theme flag, driven by the parent editor's resolved theme. */
+  readonly dark = input<boolean>(false);
+
   private handle: CodeEditorHandle | null = null;
   private lastPushedValue = '';
 
@@ -68,8 +72,9 @@ export class TextModeComponent implements AfterViewInit, OnDestroy {
       this.handle?.setDiagnostics(diagnostics);
     });
 
-    // Reflect read-only.
+    // Reflect read-only and dark theme.
     effect(() => this.handle?.setReadOnly(this.store.readOnly()));
+    effect(() => this.handle?.setDark(this.dark()));
   }
 
   async ngAfterViewInit(): Promise<void> {
@@ -79,7 +84,7 @@ export class TextModeComponent implements AfterViewInit, OnDestroy {
       initialValue: this.store.text(),
       readOnly: this.store.readOnly(),
       indentation: this.store.indentation(),
-      dark: this.isDark(),
+      dark: this.dark(),
       onChange: (value: string) => {
         if (value === this.lastPushedValue) {
           return;
@@ -124,12 +129,5 @@ export class TextModeComponent implements AfterViewInit, OnDestroy {
         message: err.message,
       },
     ];
-  }
-
-  private isDark(): boolean {
-    return (
-      typeof document !== 'undefined' &&
-      document.documentElement.classList.contains('nje-theme-dark')
-    );
   }
 }

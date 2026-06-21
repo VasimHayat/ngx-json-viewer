@@ -42,7 +42,7 @@ boundary (core cannot import from the primary entry) and reviewed in CI.
 
 - **Single source of truth**: a per-instance signal-based `EditorStore` holding
   the JSON document plus a derived view model. Tree / text / table are
-  *projections* of the same store, so switching modes never loses data,
+  _projections_ of the same store, so switching modes never loses data,
   expansion, or selection state.
 - **Edits as patches**: every mutation is expressed as an RFC 6902 JSON Patch.
   Undo/redo are forward/inverse patch stacks (bounded by `limits.historyLimit`).
@@ -69,11 +69,26 @@ can swap in Monaco or a plain textarea without touching the editor.
 overridable by the host. **No implicit network/file/clipboard access** — all
 such I/O goes through an injected adapter (spec §11).
 
-## 6. Virtualization & Web Worker (Phase 3 / 6)
+## 6. Virtualization & Web Worker
 
-- Tree and table virtualize rows via CDK virtual scroll; children lazy-expand.
-- Parse / validate / repair / transform / diff run on a Web Worker above
-  `limits.workerThresholdBytes`, falling back to the main thread for small docs.
+- **Virtualization (done).** Tree and table render via CDK virtual scroll — only
+  visible rows are in the DOM. `flattenTree` is lazy: collapsed subtrees are
+  never traversed, so a collapsed 25 MB document flattens to a few rows. See
+  PERF.md for measured numbers (1 MB parses in ~11 ms).
+- **Worker offloading (pluggable).** The expensive one-shot operations
+  (transform / diff / repair / schema validation) are reached through the
+  `HEAVY_COMPUTE` DI token. The default runs them on the main thread (already
+  well inside budget for typical docs). Because `core` is framework- and
+  DOM-free, the exact same functions run unchanged inside a Web Worker; a host
+  provides a worker-backed `HEAVY_COMPUTE` for multi-megabyte documents above
+  `limits.workerThresholdBytes`. The synchronous tree/text/table derivations
+  stay on the main thread by design — they are signal-`computed` projections and
+  measured latency is already < 50 ms for 1 MB.
+
+  > Why pluggable rather than a bundled worker: ng-packagr does not bundle Web
+  > Workers into a library reliably. Exposing the strategy as a token keeps the
+  > library buildable and lets the host's own bundler (which _does_ support
+  > `new Worker(new URL(...))`) own the worker. This is a recorded decision.
 
 ## 7. Theming
 

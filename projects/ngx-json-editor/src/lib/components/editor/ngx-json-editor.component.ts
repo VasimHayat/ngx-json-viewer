@@ -66,6 +66,7 @@ import { CompareComponent } from '../dialogs/compare.component';
     class: 'nje-root',
     '[class.nje-theme-dark]': 'isDark()',
     '[attr.data-mode]': 'store.mode()',
+    '(keydown)': 'onKeydown($event)',
   },
 })
 export class NgxJsonEditorComponent {
@@ -207,6 +208,50 @@ export class NgxJsonEditorComponent {
     });
 
     queueMicrotask(() => this.ready.emit());
+  }
+
+  // ── Keyboard shortcuts ──────────────────────────────────────────────────
+  /**
+   * Global shortcuts. Skipped when focus is inside the CodeMirror editor (it
+   * owns its own undo/redo/find keymap) or a plain input. See README.
+   *
+   * Ctrl/Cmd+Z undo · Ctrl/Cmd+Shift+Z / Ctrl+Y redo · Ctrl/Cmd+F find ·
+   * Alt+Shift+F format · Alt+Shift+C compact.
+   */
+  protected onKeydown(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    const inCodeMirror = !!target?.closest?.('.cm-editor');
+    const inField = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+    const mod = event.ctrlKey || event.metaKey;
+    const key = event.key.toLowerCase();
+
+    if (event.altKey && event.shiftKey && key === 'f') {
+      event.preventDefault();
+      this.format();
+      return;
+    }
+    if (event.altKey && event.shiftKey && key === 'c') {
+      event.preventDefault();
+      this.compact();
+      return;
+    }
+    if (!mod || inCodeMirror) {
+      return;
+    }
+    if (key === 'z' && !event.shiftKey) {
+      if (inField) return;
+      event.preventDefault();
+      this.undo();
+    } else if (key === 'y' || (key === 'z' && event.shiftKey)) {
+      if (inField) return;
+      event.preventDefault();
+      this.redo();
+    } else if (key === 'f') {
+      event.preventDefault();
+      if (!this.searchOpen()) {
+        this.toggleSearch();
+      }
+    }
   }
 
   // ── Toolbar handlers ──────────────────────────────────────────────────────

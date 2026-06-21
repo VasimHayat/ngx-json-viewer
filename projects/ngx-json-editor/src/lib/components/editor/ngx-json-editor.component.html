@@ -226,7 +226,7 @@
 >
   @switch (store.mode()) {
     @case ('text') {
-      <ngx-json-text />
+      <ngx-json-text [dark]="isDark()" />
     }
     @case ('tree') {
       @if (store.isEmpty()) {

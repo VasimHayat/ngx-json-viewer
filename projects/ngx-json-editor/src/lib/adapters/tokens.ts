@@ -1,5 +1,16 @@
 import { InjectionToken } from '@angular/core';
-import { JsonValue, Result, queryJmespath } from 'ngx-json-editor/core';
+import {
+  JsonValue,
+  RepairResult,
+  Result,
+  SchemaDocument,
+  ValidationError,
+  createSchemaValidator,
+  diffToPatch,
+  queryJmespath,
+  repairJson,
+} from 'ngx-json-editor/core';
+import { JsonPatchOperation } from 'ngx-json-editor/core';
 
 /**
  * Adapter contracts and DI tokens. Every side-effecting capability the editor
@@ -165,4 +176,30 @@ export interface QueryEngine {
 export const QUERY_ENGINE = new InjectionToken<QueryEngine>('ngx-json-editor.QUERY_ENGINE', {
   providedIn: 'root',
   factory: () => ({ query: queryJmespath }),
+});
+
+// ── Heavy compute (off-main-thread offloading) ──────────────────────────────
+
+/**
+ * Async strategy for expensive one-shot operations (transform / diff / repair /
+ * schema validation). The default runs on the main thread; a host can provide a
+ * Web Worker-backed implementation for large documents. The `core` logic is
+ * framework- and DOM-free, so it runs unchanged inside a worker — see
+ * ARCHITECTURE.md §6 for the worker recipe and `limits.workerThresholdBytes`.
+ */
+export interface HeavyCompute {
+  transform(data: JsonValue, expression: string): Promise<Result<JsonValue, Error>>;
+  diff(left: JsonValue, right: JsonValue): Promise<readonly JsonPatchOperation[]>;
+  repair(text: string): Promise<RepairResult>;
+  validate(data: JsonValue, schema: SchemaDocument): Promise<readonly ValidationError[]>;
+}
+
+export const HEAVY_COMPUTE = new InjectionToken<HeavyCompute>('ngx-json-editor.HEAVY_COMPUTE', {
+  providedIn: 'root',
+  factory: () => ({
+    transform: (data, expr) => Promise.resolve(queryJmespath(data, expr)),
+    diff: (left, right) => Promise.resolve(diffToPatch(left, right)),
+    repair: (text) => Promise.resolve(repairJson(text)),
+    validate: (data, schema) => Promise.resolve(createSchemaValidator(schema).validate(data)),
+  }),
 });
