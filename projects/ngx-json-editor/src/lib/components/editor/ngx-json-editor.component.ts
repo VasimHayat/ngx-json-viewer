@@ -67,6 +67,7 @@ import { CompareComponent } from '../dialogs/compare.component';
     '[class.nje-theme-dark]': 'isDark()',
     '[class.nje-fullscreen]': 'fullscreen()',
     '[attr.data-mode]': 'store.mode()',
+    '[attr.data-preset]': 'themePreset()',
     '(keydown)': 'onKeydown($event)',
   },
 })
@@ -104,6 +105,8 @@ export class NgxJsonEditorComponent {
   readonly validator = input<ValidatorFn | null>(null);
   readonly indentation = input<number | 'tab'>(2);
   readonly theme = input<'light' | 'dark' | 'auto'>('auto');
+  /** Color preset: 'green' (default) | 'blue' | 'violet' | 'slate' | 'contrast'. */
+  readonly themePreset = input<string>('green');
   readonly i18n = input<Partial<EditorI18n>>({});
   readonly config = input<NgxJsonEditorConfig>({});
 

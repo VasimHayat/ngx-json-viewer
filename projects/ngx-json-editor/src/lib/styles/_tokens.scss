@@ -164,3 +164,172 @@
 
   --nje-shadow-pop: 0 4px 18px rgba(0, 0, 0, 0.5);
 }
+
+// ── Theme presets ───────────────────────────────────────────────────────────
+// A preset only overrides the "hue" tokens (chrome + accent + selection) so it
+// composes with the light/dark surface+text tokens above.
+@mixin nje-hue(
+  $menu,
+  $menu-strong,
+  $menu-hover,
+  $accent,
+  $accent-hover,
+  $selected,
+  $selected-muted,
+  $tab-active,
+  $badge-bg,
+  $badge-fg,
+  $cell-bg,
+  $cell-border
+) {
+  --nje-menu-bg: #{$menu};
+  --nje-menu-bg-strong: #{$menu-strong};
+  --nje-menu-hover: #{$menu-hover};
+  --nje-menu-border: #{$menu-strong};
+  --nje-accent: #{$accent};
+  --nje-accent-hover: #{$accent-hover};
+  --nje-focus-ring: #{$accent};
+  --nje-bg-selected: #{$selected};
+  --nje-bg-selected-muted: #{$selected-muted};
+  --nje-tab-active-bg: #{$tab-active};
+  --nje-badge-bg: #{$badge-bg};
+  --nje-badge-fg: #{$badge-fg};
+  --nje-value-cell-bg: #{$cell-bg};
+  --nje-value-cell-border: #{$cell-border};
+}
+
+// Emits all preset selector blocks. Include at the root of a component's SCSS
+// (the editor + workspace). A preset is applied by adding `.nje-preset-<name>`
+// to the host; combine with `.nje-theme-dark` for the dark variant.
+@mixin ngx-json-editor-presets() {
+  // Blue
+  :host([data-preset='blue']) {
+    @include nje-hue(
+      #3b82f6,
+      #2563eb,
+      #60a5fa,
+      #2563eb,
+      #1d4ed8,
+      #dbeafe,
+      #eff6ff,
+      #dbeafe,
+      #dbeafe,
+      #1e40af,
+      #f3f8ff,
+      #cfe0ff
+    );
+    --nje-type-string: #1d4ed8;
+  }
+  :host([data-preset='blue'].nje-theme-dark) {
+    @include nje-hue(
+      #1d4ed8,
+      #1e40af,
+      #2f5fd0,
+      #60a5fa,
+      #93c5fd,
+      #1e3a5f,
+      #18293f,
+      #1e3a5f,
+      #1e3a5f,
+      #bfdbfe,
+      #18243a,
+      #2a3a55
+    );
+  }
+
+  // Violet
+  :host([data-preset='violet']) {
+    @include nje-hue(
+      #7c3aed,
+      #6d28d9,
+      #8b5cf6,
+      #7c3aed,
+      #6d28d9,
+      #ede9fe,
+      #f5f3ff,
+      #ede9fe,
+      #ede9fe,
+      #5b21b6,
+      #f8f4ff,
+      #e3d9fb
+    );
+    --nje-type-string: #6d28d9;
+  }
+  :host([data-preset='violet'].nje-theme-dark) {
+    @include nje-hue(
+      #6d28d9,
+      #5b21b6,
+      #7c3aed,
+      #a78bfa,
+      #c4b5fd,
+      #3b2a5f,
+      #2a1f44,
+      #3b2a5f,
+      #3b2a5f,
+      #ddd6fe,
+      #221a36,
+      #3a2a55
+    );
+  }
+
+  // Slate (neutral chrome, blue accent)
+  :host([data-preset='slate']) {
+    @include nje-hue(
+      #475569,
+      #334155,
+      #64748b,
+      #2563eb,
+      #1d4ed8,
+      #e2e8f0,
+      #f1f5f9,
+      #e2e8f0,
+      #e2e8f0,
+      #334155,
+      #f8fafc,
+      #e2e8f0
+    );
+    --nje-bg-subtle: #f1f5f9;
+    --nje-border: #e2e8f0;
+    --nje-border-strong: #cbd5e1;
+    --nje-type-string: #0f7b3f;
+  }
+  :host([data-preset='slate'].nje-theme-dark) {
+    @include nje-hue(
+      #334155,
+      #1e293b,
+      #475569,
+      #60a5fa,
+      #93c5fd,
+      #334155,
+      #1e293b,
+      #334155,
+      #334155,
+      #cbd5e1,
+      #1a2330,
+      #3a4a5f
+    );
+  }
+
+  // High contrast (AAA-leaning)
+  :host([data-preset='contrast']) {
+    @include nje-hue(
+      #111111,
+      #000000,
+      #333333,
+      #0040cc,
+      #002a99,
+      #ffe600,
+      #fff7b0,
+      #ffe600,
+      #111111,
+      #ffffff,
+      #ffffff,
+      #111111
+    );
+    --nje-fg: #000000;
+    --nje-border: #111111;
+    --nje-border-strong: #000000;
+    --nje-type-string: #006600;
+    --nje-type-null: #9c0050;
+  }
+}

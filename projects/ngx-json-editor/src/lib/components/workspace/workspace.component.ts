@@ -33,6 +33,10 @@ import { IconComponent } from '../icon/icon.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.component.html',
   styleUrl: './workspace.component.scss',
+  host: {
+    '[class.nje-theme-dark]': "theme() === 'dark'",
+    '[attr.data-preset]': 'themePreset()',
+  },
 })
 export class NgxJsonWorkspaceComponent {
   private readonly hostRef = inject(ElementRef<HTMLElement>);
@@ -42,6 +46,8 @@ export class NgxJsonWorkspaceComponent {
   readonly leftTitle = input<string>('Document 1');
   readonly rightTitle = input<string>('Document 2');
   readonly theme = input<'light' | 'dark' | 'auto'>('auto');
+  /** Color preset forwarded to both panes. */
+  readonly themePreset = input<string>('green');
   readonly readOnly = input<boolean>(false);
 
   private readonly leftEditor = viewChild<NgxJsonEditorComponent>('leftEd');

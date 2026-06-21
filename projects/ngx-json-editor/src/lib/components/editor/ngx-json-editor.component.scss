@@ -34,15 +34,18 @@
   }
 }
 
+@include t.ngx-json-editor-presets();
+
 // ── Green menu / title bar ──────────────────────────────────────────────────
 .nje-menu {
   display: flex;
   align-items: center;
   gap: var(--nje-gap);
   height: var(--nje-menu-height);
-  padding: 0 8px;
-  background: var(--nje-menu-bg);
+  padding: 0 10px;
+  background: linear-gradient(180deg, var(--nje-menu-hover), var(--nje-menu-bg) 55%, var(--nje-menu-bg-strong));
   color: var(--nje-menu-fg);
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
   flex: 0 0 auto;
 }
 
@@ -103,39 +106,43 @@
 
 .nje-tabs {
   display: inline-flex;
+  padding: 2px;
+  gap: 2px;
   border: 1px solid var(--nje-border-strong);
-  border-radius: var(--nje-radius-sm);
-  overflow: hidden;
+  border-radius: 7px;
+  background: var(--nje-bg-raised);
 }
 
 .nje-tab {
   appearance: none;
   border: 0;
-  border-right: 1px solid var(--nje-border-strong);
-  background: var(--nje-tab-bg);
+  border-radius: 5px;
+  background: transparent;
   color: var(--nje-tab-fg);
   font: inherit;
   font-size: 12px;
-  padding: 3px 12px;
+  font-weight: 500;
+  padding: 3px 13px;
   cursor: pointer;
-
-  &:last-child {
-    border-right: 0;
-  }
+  transition:
+    background 0.13s ease,
+    color 0.13s ease,
+    box-shadow 0.13s ease;
 
   &:hover {
     background: var(--nje-bg-hover);
   }
 
   &--active {
-    background: var(--nje-tab-active-bg);
-    color: var(--nje-tab-active-fg);
+    background: var(--nje-accent);
+    color: var(--nje-accent-contrast);
     font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
   }
 
   &:focus-visible {
     outline: 2px solid var(--nje-focus-ring);
-    outline-offset: -2px;
+    outline-offset: 1px;
   }
 }
 
@@ -157,27 +164,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   appearance: none;
   border: 0;
-  border-radius: var(--nje-radius-sm);
+  border-radius: 5px;
   background: transparent;
   color: var(--nje-fg-muted);
   cursor: pointer;
+  transition:
+    background 0.13s ease,
+    color 0.13s ease,
+    transform 0.08s ease;
 
   &:hover:not(:disabled) {
     background: var(--nje-bg-hover);
-    color: var(--nje-fg);
+    color: var(--nje-accent);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.92);
   }
 
   &--active {
     background: var(--nje-bg-selected);
-    color: var(--nje-fg);
+    color: var(--nje-accent);
   }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: default;
   }
 
