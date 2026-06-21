@@ -103,6 +103,12 @@
     outline: 2px solid var(--nje-focus-ring);
     outline-offset: -2px;
   }
+
+  // Text mode: CodeMirror manages its own scrolling and padding.
+  &[data-mode='text'] {
+    padding: 0;
+    overflow: hidden;
+  }
 }
 
 .nje-empty {
@@ -139,4 +145,22 @@
 
 .nje-status-sep {
   color: var(--nje-fg-faint);
+}
+
+.nje-status-errors {
+  color: var(--nje-error);
+  font-weight: 600;
+}
+
+.nje-status-valid {
+  color: var(--nje-success);
+}
+
+.nje-status-selection {
+  color: var(--nje-fg-muted);
+  font-family: var(--nje-font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40%;
 }

@@ -2,11 +2,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
+import { EditorMode } from '../../models';
 import { NgxJsonEditorComponent } from './ngx-json-editor.component';
 
 describe('NgxJsonEditorComponent', () => {
   let fixture: ComponentFixture<NgxJsonEditorComponent>;
   let component: NgxJsonEditorComponent;
+  let host: HTMLElement;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -16,11 +18,11 @@ describe('NgxJsonEditorComponent', () => {
 
     fixture = TestBed.createComponent(NgxJsonEditorComponent);
     component = fixture.componentInstance;
+    host = fixture.nativeElement as HTMLElement;
   });
 
   it('creates and renders a toolbar, body, and status bar', () => {
     fixture.detectChanges();
-    const host: HTMLElement = fixture.nativeElement;
     expect(component).toBeTruthy();
     expect(host.querySelector('.nje-toolbar')).toBeTruthy();
     expect(host.querySelector('.nje-body')).toBeTruthy();
@@ -30,33 +32,54 @@ describe('NgxJsonEditorComponent', () => {
   it('shows the empty-document placeholder for an empty object', () => {
     fixture.componentRef.setInput('content', { json: {} });
     fixture.detectChanges();
-    const empty = (fixture.nativeElement as HTMLElement).querySelector('.nje-empty');
-    expect(empty?.textContent?.trim()).toBe('Empty document');
+    expect(host.querySelector('.nje-empty')?.textContent?.trim()).toBe('Empty document');
   });
 
-  it('renders the document text for non-empty content', () => {
+  it('renders a formatted preview for non-empty content', () => {
     fixture.componentRef.setInput('content', { json: { a: 1 } });
     fixture.detectChanges();
-    const preview = (fixture.nativeElement as HTMLElement).querySelector('.nje-preview');
-    expect(preview?.textContent).toContain('"a": 1');
+    expect(host.querySelector('.nje-preview')?.textContent).toContain('"a": 1');
   });
 
-  it('switches mode and emits modeChange', () => {
-    const emitted: string[] = [];
+  it('switches mode via the store and emits modeChange', () => {
+    const emitted: EditorMode[] = [];
     component.modeChange.subscribe((m) => emitted.push(m));
     fixture.detectChanges();
-    component.setMode('text');
-    expect(component.activeMode()).toBe('text');
-    expect(emitted).toEqual(['text']);
+    component.setMode('table'); // table renders the placeholder (no CodeMirror)
+    fixture.detectChanges();
+    expect(host.getAttribute('data-mode')).toBe('table');
+    expect(emitted).toEqual(['table']);
   });
 
-  it('format() and compact() round-trip the document', () => {
+  it('compact() and format() round-trip through the store', () => {
     fixture.componentRef.setInput('content', { json: { a: 1, b: [2, 3] } });
     fixture.detectChanges();
+
     component.compact();
-    expect(component.get()).toEqual({ text: '{"a":1,"b":[2,3]}' });
+    const c1 = component.get();
+    expect('text' in c1 ? c1.text : '').toBe('{"a":1,"b":[2,3]}');
+
     component.format();
-    const got = component.get();
-    expect(('json' in got ? got.json : null) as unknown).toEqual({ a: 1, b: [2, 3] });
+    const c2 = component.get();
+    const parsed = 'text' in c2 && c2.text ? JSON.parse(c2.text) : null;
+    expect(parsed).toEqual({ a: 1, b: [2, 3] });
+  });
+
+  it('supports undo after an edit', () => {
+    fixture.componentRef.setInput('content', { json: { a: 1 } });
+    fixture.detectChanges();
+    component.compact();
+    expect('text' in component.get()).toBeTrue();
+    component.undo();
+    const back = component.get();
+    expect('json' in back ? (back.json as unknown) : null).toEqual({ a: 1 });
+  });
+
+  it('reports parse errors via validate() in text content', () => {
+    fixture.componentRef.setInput('content', { text: '{bad' });
+    fixture.detectChanges();
+    const errors = component.validate();
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].source).toBe('parse');
   });
 });

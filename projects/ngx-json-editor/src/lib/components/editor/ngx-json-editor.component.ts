@@ -3,22 +3,17 @@ import {
   Component,
   ElementRef,
   computed,
+  effect,
   inject,
   input,
   model,
   output,
-  signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
-import {
-  JsonPath,
-  JsonValue,
-  ValidationError,
-  getValueType,
-  isContainer,
-} from 'ngx-json-editor/core';
+import { JsonPath, JsonValue, ValidationError, pathToDisplay } from 'ngx-json-editor/core';
 import {
   DEFAULT_I18N,
   EditorI18n,
@@ -31,33 +26,37 @@ import {
   isTextContent,
 } from '../../models';
 import { JsonSchema } from '../../models/schema';
+import { EditorStore } from '../../state/editor-store';
+import { TextModeComponent } from '../text/text-mode.component';
 
 /**
  * `<ngx-json-editor>` — the single primary component of the library.
  *
- * Phase 0 renders the editor shell (toolbar, body, status bar) and establishes
- * the complete, stable public API surface (signal inputs/outputs/model and the
- * imperative methods). Tree/text/table projections and the signal-based
- * EditorStore are layered in by subsequent phases; the API does not change.
+ * Owns a per-instance signal {@link EditorStore} (the single source of truth)
+ * and projects it through the tree / text / table mode components. The public
+ * API (signal inputs/outputs, two-way `content` model, imperative methods) is
+ * stable; modes are layered in across phases.
  */
 @Component({
   selector: 'ngx-json-editor',
-  imports: [ButtonModule, TooltipModule],
+  imports: [ButtonModule, TooltipModule, TextModeComponent],
+  providers: [EditorStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ngx-json-editor.component.html',
   styleUrl: './ngx-json-editor.component.scss',
   host: {
     class: 'nje-root',
     '[class.nje-theme-dark]': 'isDark()',
-    '[attr.data-mode]': 'mode()',
+    '[attr.data-mode]': 'store.mode()',
   },
 })
 export class NgxJsonEditorComponent {
   private readonly hostRef = inject(ElementRef<HTMLElement>);
-  private readonly bodyRef = viewChild<ElementRef<HTMLElement>>('body');
+  private readonly textMode = viewChild(TextModeComponent);
+  /** The per-instance store (exposed to the template). */
+  protected readonly store = inject(EditorStore);
 
   // ── Two-way bindable content ──────────────────────────────────────────────
-  /** Editor content; supply `{ json }` or `{ text }`. Defaults to an empty doc. */
   readonly content = model<JsonEditorContent>({ json: null });
 
   // ── Behavior inputs ───────────────────────────────────────────────────────
@@ -73,14 +72,9 @@ export class NgxJsonEditorComponent {
 
   // ── Events ────────────────────────────────────────────────────────────────
   /**
-   * Rich change event carrying the new content, current validation errors, and
-   * the RFC 6902 patch that produced the change.
-   *
-   * NOTE: this is exposed as `(documentChange)` rather than `(contentChange)`
-   * because an Angular `model('content')` already auto-generates a
-   * `contentChange` output (used by the `[(content)]` two-way binding, emitting
-   * `JsonEditorContent`). Declaring a second `contentChange` would collide, and
-   * a plain `change` is forbidden as a native DOM event name. See ARCHITECTURE.md.
+   * Rich change event: `{ content, errors, patch }`. Named `documentChange`
+   * (not `contentChange`) to avoid colliding with the `model('content')`
+   * auto-output used by `[(content)]`. See ARCHITECTURE.md.
    */
   readonly documentChange = output<OnChangeStatus>();
   readonly modeChange = output<EditorMode>();
@@ -88,15 +82,9 @@ export class NgxJsonEditorComponent {
   readonly selectionChange = output<JsonPath | null>();
   readonly ready = output<void>();
 
-  // ── Internal reactive state ───────────────────────────────────────────────
-  /** Active mode (seeded from the input, switchable via the toolbar). */
-  readonly activeMode = signal<EditorMode>('tree');
-  private readonly errors = signal<readonly ValidationError[]>([]);
-
-  /** Merged i18n map (defaults + consumer overrides). */
+  // ── Derived / template state ──────────────────────────────────────────────
   readonly strings = computed<EditorI18n>(() => ({ ...DEFAULT_I18N, ...this.i18n() }));
 
-  /** Resolved dark-mode flag from the `theme` input (auto → OS preference). */
   readonly isDark = computed<boolean>(() => {
     const t = this.theme();
     if (t === 'dark') return true;
@@ -104,148 +92,165 @@ export class NgxJsonEditorComponent {
     return typeof matchMedia !== 'undefined' && matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
-  /** Indentation rendered as the string passed to `JSON.stringify`. */
-  readonly indentString = computed<string | number>(() => {
-    const ind = this.indentation();
-    return ind === 'tab' ? '\t' : ind;
+  /** Effective feature toggles (consumer config merged over defaults = on). */
+  readonly features = computed(() => this.config().features ?? {});
+  readonly availableModes = computed<readonly EditorMode[]>(
+    () => this.features().modes ?? ['tree', 'text', 'table'],
+  );
+
+  /** Human-readable selection path for the status bar. */
+  readonly selectionLabel = computed<string>(() => {
+    const sel = this.store.selection();
+    return sel ? pathToDisplay(sel) : '';
   });
 
-  /** The current document as a parsed value (best-effort; null on parse error). */
-  readonly currentJson = computed<JsonValue | undefined>(() => {
-    const c = this.content();
-    if (!c) return undefined;
-    if (isTextContent(c)) {
-      try {
-        return JSON.parse(c.text) as JsonValue;
-      } catch {
-        return undefined;
-      }
-    }
-    return c.json ?? null;
-  });
-
-  /** Pretty-printed text view of the current document (placeholder body). */
-  readonly displayText = computed<string>(() => {
-    const c = this.content();
-    if (!c) return '';
-    if (isTextContent(c)) return c.text;
-    try {
-      return JSON.stringify(c.json, null, this.indentString());
-    } catch {
-      return String(c.json);
-    }
-  });
-
-  /** True when the document is empty/blank. */
-  readonly isEmpty = computed<boolean>(() => {
-    const v = this.currentJson();
-    if (v === undefined) return this.displayText().trim().length === 0;
-    if (v === null) return true;
-    if (isContainer(v)) return Object.keys(v).length === 0;
-    return false;
-  });
+  private lastEmittedContent: JsonEditorContent | undefined;
+  private lastEmittedMode: EditorMode | undefined;
 
   constructor() {
-    // Seed active mode from the input on first read.
-    queueMicrotask(() => {
-      this.activeMode.set(this.mode());
-      this.ready.emit();
+    // ── Inputs → store ──────────────────────────────────────────────────────
+    effect(() => this.store.setReadOnly(this.readOnly()));
+    effect(() => this.store.setIndentation(this.indentation()));
+    effect(() => this.store.setSchema(this.schema(), this.schemaRefs()));
+    effect(() => this.store.setValidator(this.validator()));
+    effect(() => {
+      const limit = this.config().limits?.historyLimit;
+      if (limit) {
+        this.store.setHistoryLimit(limit);
+      }
     });
+    effect(() => this.store.setMode(this.mode()));
+
+    // ── Model content → store (external/host updates) ──────────────────────
+    effect(() => {
+      const incoming = this.content();
+      if (!incoming) {
+        return;
+      }
+      const current = untracked(() => this.store.content());
+      if (!sameContent(incoming, current)) {
+        this.store.replaceDocument(incoming);
+      }
+    });
+
+    // ── Store content → model + documentChange ─────────────────────────────
+    effect(() => {
+      const c = this.store.content();
+      const modelVal = untracked(() => this.content());
+      if (!sameContent(c, modelVal ?? { json: null })) {
+        this.content.set(c);
+      }
+      const prev = this.lastEmittedContent;
+      if (prev === undefined) {
+        this.lastEmittedContent = c;
+        return;
+      }
+      if (!sameContent(c, prev)) {
+        this.lastEmittedContent = c;
+        this.documentChange.emit({
+          content: c,
+          errors: untracked(() => this.store.errors()),
+          patch: undefined,
+        });
+      }
+    });
+
+    // ── Store → output events ───────────────────────────────────────────────
+    effect(() => this.errorsChange.emit(this.store.errors()));
+    effect(() => this.selectionChange.emit(this.store.selection()));
+    effect(() => {
+      const m = this.store.mode();
+      if (this.lastEmittedMode === undefined) {
+        this.lastEmittedMode = m;
+        return;
+      }
+      if (m !== this.lastEmittedMode) {
+        this.lastEmittedMode = m;
+        this.modeChange.emit(m);
+      }
+    });
+
+    queueMicrotask(() => this.ready.emit());
   }
 
   // ── Toolbar handlers ──────────────────────────────────────────────────────
-  /** Switch the active editor mode. */
   setMode(next: EditorMode): void {
-    if (next === this.activeMode()) return;
-    this.activeMode.set(next);
-    this.modeChange.emit(next);
+    this.store.setMode(next);
   }
 
   // ── Imperative API (call via a template ref) ──────────────────────────────
-  /** Expand every container node (tree mode). No-op until tree mode lands. */
   expandAll(): void {
     /* Implemented in Phase 3 (tree mode). */
   }
 
-  /** Collapse every container node (tree mode). No-op until tree mode lands. */
   collapseAll(): void {
-    /* Implemented in Phase 3 (tree mode). */
+    this.store.setExpanded([]);
   }
 
-  /** Beautify the document with the configured indentation. */
   format(): void {
-    const json = this.currentJson();
-    if (json === undefined) return;
-    this.commit({ json });
+    this.store.format();
   }
 
-  /** Minify the document to single-line JSON. */
   compact(): void {
-    const json = this.currentJson();
-    if (json === undefined) return;
-    this.commit({ text: JSON.stringify(json) });
+    this.store.compact();
   }
 
-  /** Attempt to repair malformed JSON. Full implementation arrives in Phase 1. */
   repair(): RepairResult {
-    const text = this.displayText();
-    try {
-      JSON.parse(text);
-      return { ok: true, text, changed: false, applied: [] };
-    } catch (e) {
-      return {
-        ok: false,
-        text,
-        changed: false,
-        applied: [],
-        error: (e as Error).message,
-      };
+    return this.store.repair();
+  }
+
+  undo(): void {
+    this.store.undo();
+  }
+
+  redo(): void {
+    this.store.redo();
+  }
+
+  focus(): void {
+    const tm = this.textMode();
+    if (tm) {
+      tm.focus();
+    } else {
+      this.hostRef.nativeElement.focus();
     }
   }
 
-  /** Undo the last change. Wired to the patch history in Phase 2. */
-  undo(): void {
-    /* Implemented in Phase 2 (history). */
-  }
-
-  /** Redo the last undone change. Wired to the patch history in Phase 2. */
-  redo(): void {
-    /* Implemented in Phase 2 (history). */
-  }
-
-  /** Move keyboard focus into the editor body. */
-  focus(): void {
-    (this.bodyRef()?.nativeElement ?? this.hostRef.nativeElement).focus();
-  }
-
-  /** Run validation and return findings (does not throw). */
   validate(): readonly ValidationError[] {
-    return this.errors();
+    return this.store.errors();
   }
 
-  /** Get the current content. */
   get(): JsonEditorContent {
-    return this.content() ?? { json: null };
+    return this.store.content();
   }
 
-  /** Replace the content. */
   set(c: JsonEditorContent): void {
-    this.commit(c);
+    this.store.replaceDocument(c);
   }
 
-  /** Apply a JMESPath query and return the result. Implemented in Phase 1. */
   transform(_query: string): JsonEditorContent {
+    // Implemented with the Transform dialog/engine in Phase 4.
     return this.get();
   }
 
-  // ── Internal ──────────────────────────────────────────────────────────────
-  private commit(next: JsonEditorContent): void {
-    this.content.set(next);
-    this.documentChange.emit({ content: next, errors: this.errors() });
+  // ── Template helpers ────────────────────────────────────────────────────
+  protected modeLabel(m: EditorMode): string {
+    const s = this.strings();
+    return m === 'tree' ? s.modeTree : m === 'text' ? s.modeText : s.modeTable;
   }
+}
 
-  /** Resolve a value's CSS type class (used by the placeholder + later phases). */
-  protected typeClass(value: JsonValue): string {
-    return `nje-type-${getValueType(value)}`;
+/** Structural equality for two editor contents (text verbatim; json by value). */
+function sameContent(a: JsonEditorContent, b: JsonEditorContent): boolean {
+  const at = isTextContent(a);
+  const bt = isTextContent(b);
+  if (at !== bt) {
+    return false;
   }
+  if (at && bt) {
+    return a.text === b.text;
+  }
+  const aj = (a as { json: JsonValue }).json;
+  const bj = (b as { json: JsonValue }).json;
+  return JSON.stringify(aj) === JSON.stringify(bj);
 }

@@ -12,6 +12,9 @@ export { NgxJsonEditorComponent } from './lib/components/editor/ngx-json-editor.
 // Public models / configuration
 export * from './lib/models';
 
+// Injectable adapters + DI tokens (host-overridable I/O and editor engine)
+export * from './lib/adapters';
+
 // Convenience re-exports of core types so consumers needn't import `/core`
 export type {
   JsonValue,

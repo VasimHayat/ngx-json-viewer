@@ -1,0 +1,122 @@
+import { ValidationError } from 'ngx-json-editor/core';
+import { EditorStore } from './editor-store';
+
+describe('EditorStore', () => {
+  let store: EditorStore;
+
+  beforeEach(() => {
+    // The store uses only signals/computed (no effects, no inject), so it can be
+    // constructed directly without TestBed.
+    store = new EditorStore();
+  });
+
+  it('starts empty', () => {
+    expect(store.isEmpty()).toBeTrue();
+    expect(store.json() as unknown).toBeNull();
+    expect(store.errors()).toEqual([]);
+  });
+
+  it('derives json and text from content', () => {
+    store.replaceDocument({ json: { a: 1 } });
+    expect(store.json() as unknown).toEqual({ a: 1 });
+    expect(store.text()).toContain('"a": 1');
+    expect(store.size()).toBeGreaterThan(0);
+  });
+
+  it('parses text content and reports parse errors', () => {
+    store.setText('{"a":1}');
+    expect(store.json() as unknown).toEqual({ a: 1 });
+    expect(store.parseError()).toBeNull();
+
+    store.setText('{"a":}');
+    expect(store.json()).toBeUndefined();
+    expect(store.parseError()).not.toBeNull();
+    const errs = store.errors();
+    expect(errs.length).toBe(1);
+    expect(errs[0].source).toBe('parse');
+  });
+
+  it('formats and compacts', () => {
+    store.replaceDocument({ json: { a: 1, b: [2, 3] } });
+    expect(store.compact()).toBeTrue();
+    expect(store.text()).toBe('{"a":1,"b":[2,3]}');
+    expect(store.format()).toBeTrue();
+    expect(store.text()).toContain('\n');
+    expect(store.json() as unknown).toEqual({ a: 1, b: [2, 3] });
+  });
+
+  it('repairs malformed JSON and commits the result', () => {
+    store.setText("{a:1, b:'two',}");
+    const r = store.repair();
+    expect(r.ok).toBeTrue();
+    expect(r.changed).toBeTrue();
+    expect(store.json() as unknown).toEqual({ a: 1, b: 'two' });
+  });
+
+  it('applies a JSON patch and records compact history', () => {
+    store.replaceDocument({ json: { a: 1 } });
+    const errOrNull = store.applyJsonPatch([{ op: 'add', path: '/b', value: 2 }]);
+    expect(errOrNull).toBeNull();
+    expect(store.json() as unknown).toEqual({ a: 1, b: 2 });
+    expect(store.canUndo()).toBeTrue();
+  });
+
+  it('rejects a patch on invalid JSON, returning an error value', () => {
+    store.setText('{bad');
+    const err = store.applyJsonPatch([{ op: 'add', path: '/b', value: 2 }]);
+    expect(err).not.toBeNull();
+    expect(err?.severity).toBe('error');
+  });
+
+  it('supports undo/redo across edits', () => {
+    store.replaceDocument({ json: { a: 1 } });
+    store.compact();
+    store.setText('{"a":1,"c":3}');
+    expect(store.json() as unknown).toEqual({ a: 1, c: 3 });
+
+    store.undo();
+    expect(store.text()).toBe('{"a":1}');
+    store.undo();
+    expect(store.json() as unknown).toEqual({ a: 1 }); // back to original json content
+
+    store.redo();
+    expect(store.text()).toBe('{"a":1}');
+    expect(store.canRedo()).toBeTrue();
+  });
+
+  it('replaceDocument resets history', () => {
+    store.replaceDocument({ json: { a: 1 } });
+    store.compact();
+    expect(store.canUndo()).toBeTrue();
+    store.replaceDocument({ json: { x: 9 } });
+    expect(store.canUndo()).toBeFalse();
+    expect(store.canRedo()).toBeFalse();
+  });
+
+  it('surfaces schema validation errors', () => {
+    store.replaceDocument({ json: { age: 'not-a-number' } });
+    store.setSchema({ type: 'object', properties: { age: { type: 'number' } } });
+    const errs = store.errors();
+    expect(errs.some((e: ValidationError) => e.source === 'schema')).toBeTrue();
+  });
+
+  it('runs a custom validator', () => {
+    store.replaceDocument({ json: { n: 1 } });
+    store.setValidator((value) =>
+      typeof value === 'object' && value !== null && !Array.isArray(value) && 'forbidden' in value
+        ? [{ path: ['forbidden'], message: 'not allowed', severity: 'error' }]
+        : [],
+    );
+    expect(store.errors()).toEqual([]);
+    store.setJson({ forbidden: true });
+    expect(store.errors().length).toBe(1);
+  });
+
+  it('tracks expansion state by path', () => {
+    expect(store.isExpanded(['a'])).toBeFalse();
+    store.toggleExpanded(['a']);
+    expect(store.isExpanded(['a'])).toBeTrue();
+    store.toggleExpanded(['a']);
+    expect(store.isExpanded(['a'])).toBeFalse();
+  });
+});

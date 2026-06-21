@@ -10,9 +10,9 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
 | Tree mode | ⬜ | `components/tree/` (Phase 3) | |
-| Text/Code mode | ⬜ | `components/text/` (Phase 2) | |
+| Text/Code mode | ✅ | `components/text/` + `adapters/codemirror.adapter.ts` (CM6: highlight, line numbers, bracket match, fold, gutters) | `editor-store.spec.ts`, component spec |
 | Table mode | ⬜ | `components/table/` (Phase 4) | |
-| Runtime mode switch | 🟡 | `components/editor/ngx-json-editor.component.ts` `setMode` | `ngx-json-editor.component.spec.ts` |
+| Runtime mode switch | ✅ | editor component `setMode` + `EditorStore.mode` | `ngx-json-editor.component.spec.ts` |
 
 ## 3.2 Tree mode
 
@@ -32,23 +32,23 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
-| Format / Compact | 🟡 | `components/editor/...` `format`/`compact` | `ngx-json-editor.component.spec.ts` |
-| Repair malformed JSON | 🟡 | `core/repair.ts` (engine ✅, UI Phase 2) | `repair.spec.ts` |
-| Real-time parse errors | 🟡 | `core/parse.ts` (located errors ✅, gutters Phase 2) | `parse.spec.ts` |
-| Configurable indentation | 🟡 | `indentation` input | |
+| Format / Compact | ✅ | `EditorStore.format`/`compact` + toolbar | `editor-store.spec.ts`, component spec |
+| Repair malformed JSON | ✅ | `core/repair.ts` + `EditorStore.repair` + toolbar | `repair.spec.ts`, `editor-store.spec.ts` |
+| Real-time parse errors | ✅ | `core/parse.ts` located errors → CM lint gutter | `parse.spec.ts`, `editor-store.spec.ts` |
+| Configurable indentation | ✅ | `indentation` input → store → CM indentUnit | `editor-store.spec.ts` |
 
 ## 3.4 Cross-mode toolbar
 
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
-| Undo / redo | 🟡 | `core/patch.ts` invert (engine ✅, history Phase 2) | `patch.spec.ts` |
+| Undo / redo | ✅ | `EditorStore` history (patch-aware) + toolbar | `editor-store.spec.ts`, component spec |
 | Search + highlight | ⬜ | (Phase 4) | |
 | Search & replace (text) | ⬜ | (Phase 4) | |
 | Sort dialog | 🟡 | `core/sort.ts` (engine ✅, dialog Phase 4) | `sort.spec.ts` |
 | Filter dialog | ⬜ | (Phase 4) | |
 | Transform (JMESPath) | 🟡 | `core/query.ts` (engine ✅, dialog Phase 4) | `query.spec.ts` |
 | JSON Schema validation (Ajv) | 🟡 | `core/schema.ts` (engine ✅, surfacing Phase 4) | `schema.spec.ts` |
-| Status bar | 🟡 | `components/editor/...` statusbar | |
+| Status bar | ✅ | editor statusbar (mode, size, error count, selection path) | component spec |
 
 ## 3.5 Document operations
 

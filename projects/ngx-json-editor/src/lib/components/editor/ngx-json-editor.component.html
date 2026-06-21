@@ -1,20 +1,14 @@
 <div class="nje-toolbar" role="toolbar" [attr.aria-label]="strings().modeLabel">
   <div class="nje-mode-switch" role="group" [attr.aria-label]="strings().modeLabel">
-    @for (m of ['tree', 'text', 'table']; track m) {
+    @for (m of availableModes(); track m) {
       <button
         type="button"
         class="nje-mode-btn"
-        [class.nje-mode-btn--active]="activeMode() === m"
-        [attr.aria-pressed]="activeMode() === m"
-        (click)="setMode($any(m))"
+        [class.nje-mode-btn--active]="store.mode() === m"
+        [attr.aria-pressed]="store.mode() === m"
+        (click)="setMode(m)"
       >
-        {{
-          m === 'tree'
-            ? strings().modeTree
-            : m === 'text'
-              ? strings().modeText
-              : strings().modeTable
-        }}
+        {{ modeLabel(m) }}
       </button>
     }
   </div>
@@ -22,36 +16,89 @@
   <div class="nje-toolbar-spacer"></div>
 
   <div class="nje-toolbar-actions">
-    <p-button
-      [label]="strings().format"
-      severity="secondary"
-      size="small"
-      [text]="true"
-      [pTooltip]="strings().format"
-      (onClick)="format()"
-    />
-    <p-button
-      [label]="strings().compact"
-      severity="secondary"
-      size="small"
-      [text]="true"
-      [pTooltip]="strings().compact"
-      (onClick)="compact()"
-    />
+    @if (features().undoRedo !== false) {
+      <p-button
+        [label]="strings().undo"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [disabled]="!store.canUndo() || readOnly()"
+        [pTooltip]="strings().undo"
+        (onClick)="undo()"
+      />
+      <p-button
+        [label]="strings().redo"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [disabled]="!store.canRedo() || readOnly()"
+        [pTooltip]="strings().redo"
+        (onClick)="redo()"
+      />
+    }
+    @if (features().format !== false) {
+      <p-button
+        [label]="strings().format"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().format"
+        (onClick)="format()"
+      />
+    }
+    @if (features().compact !== false) {
+      <p-button
+        [label]="strings().compact"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().compact"
+        (onClick)="compact()"
+      />
+    }
+    @if (features().repair !== false && !readOnly()) {
+      <p-button
+        [label]="strings().repair"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().repair"
+        (onClick)="repair()"
+      />
+    }
   </div>
 </div>
 
-<div #body class="nje-body" tabindex="0" [attr.data-mode]="activeMode()">
-  @if (isEmpty()) {
-    <div class="nje-empty">{{ strings().emptyDocument }}</div>
-  } @else {
-    <!-- Phase 0 placeholder body. Tree/text/table projections replace this. -->
-    <pre class="nje-preview">{{ displayText() }}</pre>
+<div #body class="nje-body" tabindex="0" [attr.data-mode]="store.mode()">
+  @switch (store.mode()) {
+    @case ('text') {
+      <ngx-json-text />
+    }
+    @default {
+      <!-- Tree (Phase 3) and Table (Phase 4) render here. Until then, show a
+           read-only formatted preview so the document is always visible. -->
+      @if (store.isEmpty()) {
+        <div class="nje-empty">{{ strings().emptyDocument }}</div>
+      } @else {
+        <pre class="nje-preview">{{ store.text() }}</pre>
+      }
+    }
   }
 </div>
 
 <div class="nje-statusbar" role="status" aria-live="polite">
-  <span class="nje-status-mode">{{ activeMode() }}</span>
+  <span class="nje-status-mode">{{ store.mode() }}</span>
   <span class="nje-status-sep">·</span>
-  <span class="nje-status-size">{{ displayText().length }} chars</span>
+  <span class="nje-status-size">{{ store.size() }} {{ strings().statusSize }}</span>
+  @if (store.errors().length > 0) {
+    <span class="nje-status-sep">·</span>
+    <span class="nje-status-errors">{{ store.errors().length }} {{ strings().statusErrors }}</span>
+  } @else {
+    <span class="nje-status-sep">·</span>
+    <span class="nje-status-valid">{{ strings().statusValid }}</span>
+  }
+  @if (selectionLabel()) {
+    <span class="nje-status-sep">·</span>
+    <span class="nje-status-selection">{{ selectionLabel() }}</span>
+  }
 </div>
