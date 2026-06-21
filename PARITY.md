@@ -54,10 +54,10 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
-| Copy doc / subtree / path | ⬜ | (Phase 5) | |
-| Import (paste/file/URL) | ⬜ | `adapters/` (Phase 5) | |
-| Export (download/clipboard) | ⬜ | `adapters/` (Phase 5) | |
-| Compare / structural diff | 🟡 | `core/diff.ts` (engine ✅, UI Phase 5) | `diff.spec.ts` |
+| Copy doc / subtree / path | ✅ | toolbar Copy (whole doc) + tree context-menu Copy / Copy path | tree/editor components |
+| Import (paste/file/URL) | ✅ | Import dialog (paste/URL/file) + body file-drop, via FETCH/FILE adapters | dialogs/editor components |
+| Export (download/clipboard) | ✅ | toolbar Download (FILE_ADAPTER) + Copy (CLIPBOARD_ADAPTER) | editor component |
+| Compare / structural diff | ✅ | Compare dialog → `core/diff.ts` (added/removed/changed + counts) | `diff.spec.ts`, compare component spec |
 
 ## 3.6 UX / quality-of-life
 

@@ -1,0 +1,68 @@
+<p-dialog
+  header="Compare"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [style]="{ width: '60rem', maxWidth: '95vw' }"
+>
+  <div class="nje-cmp-grid">
+    <div class="nje-cmp-pane">
+      <div class="nje-cmp-title">Other document</div>
+      <textarea
+        class="nje-cmp-input"
+        rows="10"
+        [ngModel]="rightText()"
+        (ngModelChange)="onRightInput($event)"
+        placeholder="Paste the document to compare against…"
+      ></textarea>
+      @if (rightError()) {
+        <div class="nje-cmp-err">⚠ {{ rightError() }}</div>
+      }
+    </div>
+
+    <div class="nje-cmp-pane">
+      <div class="nje-cmp-title">
+        Differences
+        @if (summary(); as s) {
+          <span class="nje-cmp-counts">
+            <span class="nje-cmp-added">+{{ s.added }}</span>
+            <span class="nje-cmp-removed">−{{ s.removed }}</span>
+            <span class="nje-cmp-changed">~{{ s.changed }}</span>
+          </span>
+        }
+      </div>
+      <div class="nje-cmp-diff">
+        @for (row of rows(); track $index) {
+          <div
+            class="nje-cmp-row nje-cmp-{{ row.status }}"
+            [style.padding-left.px]="8 + row.depth * 14"
+          >
+            <span class="nje-cmp-key">{{ row.key }}</span>
+            @if (row.leaf) {
+              @switch (row.status) {
+                @case ('added') {
+                  <span class="nje-cmp-val">{{ row.rightText }}</span>
+                }
+                @case ('removed') {
+                  <span class="nje-cmp-val">{{ row.leftText }}</span>
+                }
+                @case ('changed') {
+                  <span class="nje-cmp-val nje-cmp-old">{{ row.leftText }}</span>
+                  <span class="nje-cmp-arrow">→</span>
+                  <span class="nje-cmp-val nje-cmp-new">{{ row.rightText }}</span>
+                }
+                @default {
+                  <span class="nje-cmp-val nje-cmp-muted">{{ row.leftText }}</span>
+                }
+              }
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <p-button label="Close" [text]="true" (onClick)="visible.set(false)" />
+  </ng-template>
+</p-dialog>

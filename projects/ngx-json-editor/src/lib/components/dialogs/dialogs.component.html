@@ -64,6 +64,45 @@
   </ng-template>
 </p-dialog>
 
+<!-- Import -->
+<p-dialog
+  [header]="strings().importFile"
+  [visible]="importVisible()"
+  (visibleChange)="importVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '36rem' }"
+>
+  <label class="nje-dlg-field">
+    <span>Paste JSON</span>
+    <textarea class="nje-dlg-query" rows="6" [(ngModel)]="importText"></textarea>
+  </label>
+  <p-button label="Import pasted text" size="small" [text]="true" (onClick)="importFromText()" />
+
+  <div class="nje-dlg-divider"></div>
+
+  <label class="nje-dlg-field">
+    <span>{{ strings().importUrl }}</span>
+    <input type="text" [(ngModel)]="importUrl" placeholder="https://…/data.json" />
+  </label>
+  <p-button label="Load URL" size="small" [text]="true" (onClick)="importFromUrl()" />
+  @if (importError()) {
+    <div class="nje-dlg-error">⚠ {{ importError() }}</div>
+  }
+
+  <div class="nje-dlg-divider"></div>
+
+  <p-button
+    [label]="strings().importFile"
+    size="small"
+    [text]="true"
+    (onClick)="importFromFile()"
+  />
+
+  <ng-template pTemplate="footer">
+    <p-button [label]="strings().close" [text]="true" (onClick)="importVisible.set(false)" />
+  </ng-template>
+</p-dialog>
+
 <!-- Transform -->
 <p-dialog
   [header]="strings().transform"

@@ -4,7 +4,12 @@ import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { FilterOperator, JsonValue, SortBy, buildJmespathQuery } from 'ngx-json-editor/core';
 import { EditorStore } from '../../state/editor-store';
-import { QUERY_ENGINE, CLIPBOARD_ADAPTER } from '../../adapters/tokens';
+import {
+  CLIPBOARD_ADAPTER,
+  FETCH_ADAPTER,
+  FILE_ADAPTER,
+  QUERY_ENGINE,
+} from '../../adapters/tokens';
 import { DEFAULT_I18N, EditorI18n } from '../../models/i18n';
 
 /**
@@ -24,6 +29,8 @@ export class DialogsComponent {
   protected readonly store = inject(EditorStore);
   private readonly query = inject(QUERY_ENGINE);
   private readonly clipboard = inject(CLIPBOARD_ADAPTER);
+  private readonly fetchAdapter = inject(FETCH_ADAPTER);
+  private readonly fileAdapter = inject(FILE_ADAPTER);
 
   /** i18n strings; the parent editor overrides with its merged map. */
   readonly strings = signal<EditorI18n>(DEFAULT_I18N);
@@ -132,6 +139,49 @@ export class DialogsComponent {
     const result = this.runQuery(this.transformQuery);
     if (result.ok) {
       void this.clipboard.writeText(JSON.stringify(result.value, null, 2));
+    }
+  }
+
+  // ── Import dialog (paste / URL / file) ──────────────────────────────────
+  protected readonly importVisible = signal(false);
+  protected importText = '';
+  protected importUrl = '';
+  protected readonly importError = signal<string>('');
+
+  openImport(): void {
+    this.importText = '';
+    this.importUrl = '';
+    this.importError.set('');
+    this.importVisible.set(true);
+  }
+
+  importFromText(): void {
+    if (this.importText.trim() === '') {
+      return;
+    }
+    this.store.replaceDocument({ text: this.importText });
+    this.importVisible.set(false);
+  }
+
+  async importFromUrl(): Promise<void> {
+    if (this.importUrl.trim() === '') {
+      return;
+    }
+    this.importError.set('');
+    try {
+      const text = await this.fetchAdapter.fetchText(this.importUrl.trim());
+      this.store.replaceDocument({ text });
+      this.importVisible.set(false);
+    } catch (e) {
+      this.importError.set((e as Error).message);
+    }
+  }
+
+  async importFromFile(): Promise<void> {
+    const file = await this.fileAdapter.openFile();
+    if (file) {
+      this.store.replaceDocument({ text: file.text });
+      this.importVisible.set(false);
     }
   }
 

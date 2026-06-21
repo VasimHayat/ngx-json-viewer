@@ -17,7 +17,7 @@ import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { AutofocusDirective } from '../../directives/autofocus.directive';
 import { JsonPath, JsonValue, ValidationError, pathToDisplay } from 'ngx-json-editor/core';
-import { QUERY_ENGINE } from '../../adapters/tokens';
+import { CLIPBOARD_ADAPTER, FILE_ADAPTER, QUERY_ENGINE } from '../../adapters/tokens';
 import {
   DEFAULT_I18N,
   EditorI18n,
@@ -35,6 +35,7 @@ import { TextModeComponent } from '../text/text-mode.component';
 import { TreeModeComponent } from '../tree/tree-mode.component';
 import { TableModeComponent } from '../table/table-mode.component';
 import { DialogsComponent } from '../dialogs/dialogs.component';
+import { CompareComponent } from '../dialogs/compare.component';
 
 /**
  * `<ngx-json-editor>` — the single primary component of the library.
@@ -55,6 +56,7 @@ import { DialogsComponent } from '../dialogs/dialogs.component';
     TreeModeComponent,
     TableModeComponent,
     DialogsComponent,
+    CompareComponent,
   ],
   providers: [EditorStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,7 +72,10 @@ export class NgxJsonEditorComponent {
   private readonly hostRef = inject(ElementRef<HTMLElement>);
   private readonly textMode = viewChild(TextModeComponent);
   private readonly dialogs = viewChild(DialogsComponent);
+  private readonly compareDialog = viewChild(CompareComponent);
   private readonly queryEngine = inject(QUERY_ENGINE);
+  private readonly fileAdapter = inject(FILE_ADAPTER);
+  private readonly clipboard = inject(CLIPBOARD_ADAPTER);
   /** The per-instance store (exposed to the template). */
   protected readonly store = inject(EditorStore);
 
@@ -232,6 +237,51 @@ export class NgxJsonEditorComponent {
 
   replaceAll(): void {
     this.store.replaceAllInText(this.store.searchQuery(), this.replaceText);
+  }
+
+  // ── Document operations ─────────────────────────────────────────────────
+  /** Open a local .json file via the injected FILE_ADAPTER. */
+  async openFile(): Promise<void> {
+    const file = await this.fileAdapter.openFile();
+    if (file) {
+      this.store.replaceDocument({ text: file.text });
+    }
+  }
+
+  /** Download the current document as a .json file. */
+  download(): void {
+    this.fileAdapter.download('document.json', this.store.text());
+  }
+
+  /** Copy the whole document to the clipboard. */
+  copyDocument(): void {
+    void this.clipboard.writeText(this.store.text());
+  }
+
+  openImport(): void {
+    this.dialogs()?.openImport();
+  }
+
+  openCompare(): void {
+    this.compareDialog()?.open(this.store.json() ?? null);
+  }
+
+  /** Handle a file dropped onto the editor body (drag-drop import). */
+  onFileDrop(event: DragEvent): void {
+    const file = event.dataTransfer?.files?.[0];
+    if (!file) {
+      return; // not a file drop (e.g. internal tree drag) — ignore
+    }
+    event.preventDefault();
+    const reader = new FileReader();
+    reader.onload = () => this.store.replaceDocument({ text: String(reader.result ?? '') });
+    reader.readAsText(file);
+  }
+
+  onBodyDragOver(event: DragEvent): void {
+    if (event.dataTransfer?.types?.includes('Files')) {
+      event.preventDefault();
+    }
   }
 
   // ── Dialogs ─────────────────────────────────────────────────────────────

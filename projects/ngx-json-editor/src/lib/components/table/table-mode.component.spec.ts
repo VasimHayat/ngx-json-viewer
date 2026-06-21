@@ -20,7 +20,9 @@ describe('TableModeComponent', () => {
       { a: 1, b: 2 },
       { b: 3, c: 4 },
     ]);
-    const headers = (fixture.nativeElement as HTMLElement).querySelectorAll('.nje-th[role="columnheader"]');
+    const headers = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.nje-th[role="columnheader"]',
+    );
     expect(Array.from(headers).map((h) => h.textContent?.trim())).toEqual(['a', 'b', 'c']);
   });
 

@@ -125,6 +125,45 @@
         (onClick)="toggleSearch()"
       />
     }
+    <span class="nje-toolbar-divider"></span>
+    @if (features().importFile !== false || features().importUrl !== false) {
+      <p-button
+        [label]="strings().importFile"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().importFile"
+        (onClick)="openImport()"
+      />
+    }
+    @if (features().download !== false) {
+      <p-button
+        [label]="strings().download"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().download"
+        (onClick)="download()"
+      />
+    }
+    <p-button
+      [label]="strings().copy"
+      severity="secondary"
+      size="small"
+      [text]="true"
+      [pTooltip]="strings().copy"
+      (onClick)="copyDocument()"
+    />
+    @if (features().compare !== false) {
+      <p-button
+        [label]="strings().compare"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().compare"
+        (onClick)="openCompare()"
+      />
+    }
   </div>
 </div>
 
@@ -177,7 +216,14 @@
   </div>
 }
 
-<div #body class="nje-body" tabindex="0" [attr.data-mode]="store.mode()">
+<div
+  #body
+  class="nje-body"
+  tabindex="0"
+  [attr.data-mode]="store.mode()"
+  (dragover)="onBodyDragOver($event)"
+  (drop)="onFileDrop($event)"
+>
   @switch (store.mode()) {
     @case ('text') {
       <ngx-json-text />
@@ -220,3 +266,4 @@
 </div>
 
 <ngx-json-dialogs />
+<ngx-json-compare />

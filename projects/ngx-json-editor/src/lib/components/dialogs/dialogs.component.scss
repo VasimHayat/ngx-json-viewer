@@ -61,6 +61,18 @@
   margin-bottom: 4px;
 }
 
+.nje-dlg-divider {
+  height: 1px;
+  background: var(--nje-border);
+  margin: 14px 0;
+}
+
+.nje-dlg-error {
+  color: var(--nje-error);
+  font-size: var(--nje-font-size-sm);
+  margin-top: 6px;
+}
+
 .nje-dlg-preview {
   margin: 0;
   padding: 8px;

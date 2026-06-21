@@ -47,6 +47,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: wrap;
+}
+
+.nje-toolbar-divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 4px;
+  background: var(--nje-border);
 }
 
 .nje-mode-switch {
