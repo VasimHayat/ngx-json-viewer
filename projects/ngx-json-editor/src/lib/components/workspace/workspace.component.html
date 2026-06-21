@@ -1,0 +1,104 @@
+<div class="nje-ws">
+  <div class="nje-ws-pane" [style.flex]="'0 0 ' + splitPct() + '%'">
+    <ngx-json-editor
+      #leftEd
+      [(content)]="left"
+      [title]="leftTitle()"
+      [theme]="theme()"
+      [readOnly]="readOnly()"
+    />
+  </div>
+
+  <div class="nje-ws-center">
+    <div class="nje-ws-section">
+      <div class="nje-ws-label">Copy</div>
+      <div class="nje-ws-arrows">
+        <button
+          type="button"
+          class="nje-ws-btn"
+          title="Copy right to left"
+          (click)="copyRightToLeft()"
+        >
+          <ngx-icon name="chevron-left" />
+        </button>
+        <button
+          type="button"
+          class="nje-ws-btn"
+          title="Copy left to right"
+          (click)="copyLeftToRight()"
+        >
+          <ngx-icon name="chevron-right" />
+        </button>
+      </div>
+    </div>
+
+    <div class="nje-ws-section">
+      <div class="nje-ws-label">Transform</div>
+      <div class="nje-ws-arrows">
+        <button type="button" class="nje-ws-btn" title="Transform left" (click)="transformLeft()">
+          <ngx-icon name="chevron-left" />
+        </button>
+        <button type="button" class="nje-ws-btn" title="Transform right" (click)="transformRight()">
+          <ngx-icon name="chevron-right" />
+        </button>
+      </div>
+    </div>
+
+    <div class="nje-ws-section">
+      <div class="nje-ws-label">Differences</div>
+      <label class="nje-ws-compare">
+        <input type="checkbox" [checked]="compareOn()" (change)="toggleCompare()" />
+        Compare
+      </label>
+    </div>
+
+    @if (compareOn()) {
+      <div class="nje-ws-section">
+        <div class="nje-ws-count">{{ diffCount() }} differences</div>
+        <div class="nje-ws-arrows">
+          <button
+            type="button"
+            class="nje-ws-btn"
+            title="Previous difference"
+            [disabled]="diffCount() === 0"
+            (click)="prevDiff()"
+          >
+            <ngx-icon name="chevron-up" />
+          </button>
+          <button
+            type="button"
+            class="nje-ws-btn"
+            title="Next difference"
+            [disabled]="diffCount() === 0"
+            (click)="nextDiff()"
+          >
+            <ngx-icon name="chevron-down" />
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="nje-ws-grip-wrap">
+      <button
+        type="button"
+        class="nje-ws-grip"
+        aria-label="Resize panes"
+        (pointerdown)="onDividerPointerDown($event)"
+        (pointermove)="onDividerPointerMove($event)"
+        (pointerup)="onDividerPointerUp($event)"
+      >
+        ⋮
+      </button>
+    </div>
+  </div>
+
+  <div class="nje-ws-pane nje-ws-pane--right">
+    <ngx-json-editor
+      #rightEd
+      [(content)]="right"
+      [title]="rightTitle()"
+      [theme]="theme()"
+      [readOnly]="readOnly()"
+    />
+  </div>
+</div>

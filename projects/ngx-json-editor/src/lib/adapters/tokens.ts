@@ -38,6 +38,8 @@ export interface CodeEditorOptions {
   readonly indentation?: number | 'tab';
   readonly onChange?: (value: string) => void;
   readonly onReady?: () => void;
+  /** Reports the primary cursor position (1-based line/column). */
+  readonly onCursor?: (line: number, column: number) => void;
 }
 
 /** Handle to a mounted code editor instance. */

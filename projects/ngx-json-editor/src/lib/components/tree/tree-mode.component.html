@@ -69,7 +69,8 @@
     }
 
     @if (row.type === 'object' || row.type === 'array') {
-      <span class="nje-summary nje-type-{{ row.type }}">{{ summary(row) }}</span>
+      <span class="nje-bracket">{{ row.type === 'array' ? '[' : '{' }}</span>
+      <span class="nje-count">{{ itemCountLabel(row) }}</span>
     } @else if (isEditing(row, 'value')) {
       <input
         class="nje-edit nje-edit--value"
@@ -80,32 +81,37 @@
         ngxAutofocus
       />
     } @else if (row.type === 'boolean') {
-      <button
-        type="button"
-        class="nje-value nje-type-boolean nje-value--toggle"
-        (click)="toggleBoolean(row, $event)"
-      >
-        {{ displayValue(row) }}
-      </button>
+      <span class="nje-cell nje-cell--bool">
+        <input
+          type="checkbox"
+          class="nje-bool"
+          [checked]="$any(row.value)"
+          [disabled]="store.readOnly()"
+          (change)="onBooleanChange(row, $event)"
+          (click)="$event.stopPropagation()"
+        />
+        <span class="nje-type-boolean">{{ displayValue(row) }}</span>
+      </span>
     } @else if (isLink(row)) {
-      <a
-        class="nje-value nje-type-string nje-value--link"
-        [href]="displayValue(row)"
-        target="_blank"
-        rel="noopener noreferrer"
-        (click)="$event.stopPropagation()"
-        >"{{ displayValue(row) }}"</a
-      >
+      <span class="nje-cell">
+        <a
+          class="nje-value nje-type-string nje-value--link"
+          [href]="displayValue(row)"
+          target="_blank"
+          rel="noopener noreferrer"
+          (click)="$event.stopPropagation()"
+          >{{ displayValue(row) }}</a
+        >
+      </span>
     } @else {
-      @if (isColor(row)) {
-        <span class="nje-swatch" [style.background]="displayValue(row)" aria-hidden="true"></span>
-      }
-      <span
-        class="nje-value nje-type-{{ row.type }}"
-        [class.nje-value--editable]="isEditableValue(row)"
-        (dblclick)="beginEditValue(row, $event)"
-        >{{ row.type === 'string' ? '"' + displayValue(row) + '"' : displayValue(row) }}</span
-      >
+      <span class="nje-cell" [class.nje-cell--editable]="isEditableValue(row)">
+        @if (isColor(row)) {
+          <span class="nje-swatch" [style.background]="displayValue(row)" aria-hidden="true"></span>
+        }
+        <span class="nje-value nje-type-{{ row.type }}" (dblclick)="beginEditValue(row, $event)">{{
+          displayValue(row)
+        }}</span>
+      </span>
     }
 
     @if (hasErrorAt(row)) {

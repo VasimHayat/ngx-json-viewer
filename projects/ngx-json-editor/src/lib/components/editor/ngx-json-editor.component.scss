@@ -15,7 +15,6 @@
   color: var(--nje-fg);
   background: var(--nje-bg);
   border: 1px solid var(--nje-border);
-  border-radius: var(--nje-radius);
   overflow: hidden;
 
   &.nje-theme-dark {
@@ -23,57 +22,102 @@
     color-scheme: dark;
   }
 
+  &.nje-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    border: 0;
+  }
+
   * {
     box-sizing: border-box;
   }
 }
 
+// ── Green menu / title bar ──────────────────────────────────────────────────
+.nje-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--nje-gap);
+  height: var(--nje-menu-height);
+  padding: 0 8px;
+  background: var(--nje-menu-bg);
+  color: var(--nje-menu-fg);
+  flex: 0 0 auto;
+}
+
+.nje-doc-title {
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50%;
+}
+
+.nje-menu-spacer {
+  flex: 1 1 auto;
+}
+
+.nje-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nje-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  appearance: none;
+  border: 0;
+  border-radius: var(--nje-radius-sm);
+  background: transparent;
+  color: var(--nje-menu-fg);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--nje-menu-hover);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
+  }
+}
+
+// ── Toolbar (pale green) ────────────────────────────────────────────────────
 .nje-toolbar {
   display: flex;
   align-items: center;
   gap: var(--nje-gap);
-  height: var(--nje-toolbar-height);
-  padding: 0 var(--nje-gap);
+  min-height: var(--nje-toolbar-height);
+  padding: 0 6px;
   background: var(--nje-bg-subtle);
   border-bottom: 1px solid var(--nje-border);
   flex: 0 0 auto;
-}
-
-.nje-toolbar-spacer {
-  flex: 1 1 auto;
-}
-
-.nje-toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
   flex-wrap: wrap;
 }
 
-.nje-toolbar-divider {
-  width: 1px;
-  align-self: stretch;
-  margin: 4px 4px;
-  background: var(--nje-border);
-}
-
-.nje-mode-switch {
+.nje-tabs {
   display: inline-flex;
   border: 1px solid var(--nje-border-strong);
   border-radius: var(--nje-radius-sm);
   overflow: hidden;
-  background: var(--nje-bg-raised);
 }
 
-.nje-mode-btn {
+.nje-tab {
   appearance: none;
   border: 0;
-  background: transparent;
-  color: var(--nje-fg-muted);
+  border-right: 1px solid var(--nje-border-strong);
+  background: var(--nje-tab-bg);
+  color: var(--nje-tab-fg);
   font: inherit;
-  padding: 4px 12px;
+  font-size: 12px;
+  padding: 3px 12px;
   cursor: pointer;
-  border-right: 1px solid var(--nje-border);
 
   &:last-child {
     border-right: 0;
@@ -81,17 +125,12 @@
 
   &:hover {
     background: var(--nje-bg-hover);
-    color: var(--nje-fg);
   }
 
   &--active {
-    background: var(--nje-accent);
-    color: var(--nje-accent-contrast);
-
-    &:hover {
-      background: var(--nje-accent-hover);
-      color: var(--nje-accent-contrast);
-    }
+    background: var(--nje-tab-active-bg);
+    color: var(--nje-tab-active-fg);
+    font-weight: 600;
   }
 
   &:focus-visible {
@@ -100,14 +139,80 @@
   }
 }
 
+.nje-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  flex-wrap: wrap;
+}
+
+.nje-tb-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 4px;
+  background: var(--nje-border-strong);
+}
+
+.nje-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  appearance: none;
+  border: 0;
+  border-radius: var(--nje-radius-sm);
+  background: transparent;
+  color: var(--nje-fg-muted);
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--nje-bg-hover);
+    color: var(--nje-fg);
+  }
+
+  &--active {
+    background: var(--nje-bg-selected);
+    color: var(--nje-fg);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--nje-focus-ring);
+    outline-offset: -2px;
+  }
+}
+
+.nje-text-btn,
+.nje-prompt-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid var(--nje-border-strong);
+  border-radius: var(--nje-radius-sm);
+  background: var(--nje-bg-raised);
+  color: var(--nje-fg);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--nje-bg-hover);
+  }
+}
+
+// ── Search bar ──────────────────────────────────────────────────────────────
 .nje-searchbar {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px var(--nje-gap);
+  padding: 4px 8px;
   background: var(--nje-bg-subtle);
   border-bottom: 1px solid var(--nje-border);
   flex: 0 0 auto;
+  color: var(--nje-fg-muted);
 }
 
 .nje-search-input {
@@ -118,16 +223,17 @@
   border-radius: var(--nje-radius-sm);
   background: var(--nje-bg-raised);
   color: var(--nje-fg);
-  min-width: 140px;
+  min-width: 130px;
 }
 
 .nje-search-count {
   font-size: var(--nje-font-size-sm);
   color: var(--nje-fg-muted);
-  min-width: 64px;
+  min-width: 60px;
   text-align: center;
 }
 
+// ── Body ────────────────────────────────────────────────────────────────────
 .nje-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -136,13 +242,12 @@
   background: var(--nje-bg);
 
   &:focus-visible {
-    outline: 2px solid var(--nje-focus-ring);
-    outline-offset: -2px;
+    outline: none;
   }
 
-  // Text and tree modes manage their own scrolling (CodeMirror / CDK viewport).
   &[data-mode='text'],
-  &[data-mode='tree'] {
+  &[data-mode='tree'],
+  &[data-mode='table'] {
     padding: 0;
     overflow: hidden;
   }
@@ -159,10 +264,41 @@
   font-family: var(--nje-font-mono);
   font-size: var(--nje-font-size);
   white-space: pre;
-  tab-size: 2;
+  padding: var(--nje-gap);
   color: var(--nje-fg);
 }
 
+// ── Format prompt (jsoneditoronline-style) ──────────────────────────────────
+.nje-format-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nje-gap);
+  padding: 8px 12px;
+  background: var(--nje-menu-bg);
+  color: var(--nje-menu-fg);
+  flex: 0 0 auto;
+}
+
+.nje-format-prompt-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.nje-prompt-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--nje-bg-raised);
+  color: var(--nje-fg);
+  border-color: transparent;
+
+  &--primary {
+    font-weight: 600;
+  }
+}
+
+// ── Status bar ──────────────────────────────────────────────────────────────
 .nje-statusbar {
   display: flex;
   align-items: center;
@@ -189,10 +325,6 @@
   font-weight: 600;
 }
 
-.nje-status-valid {
-  color: var(--nje-success);
-}
-
 .nje-status-selection {
   color: var(--nje-fg-muted);
   font-family: var(--nje-font-mono);
@@ -200,4 +332,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 40%;
+}
+
+.nje-status-cursor {
+  font-family: var(--nje-font-mono);
 }

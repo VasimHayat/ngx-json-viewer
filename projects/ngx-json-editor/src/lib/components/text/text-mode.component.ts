@@ -91,6 +91,7 @@ export class TextModeComponent implements AfterViewInit, OnDestroy {
         }
         this.store.setText(value);
       },
+      onCursor: (line: number, column: number) => this.store.setCursor(line, column),
     });
     this.lastPushedValue = this.store.text();
     this.handle.setDiagnostics(this.computeDiagnostics());

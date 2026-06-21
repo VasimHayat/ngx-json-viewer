@@ -413,14 +413,37 @@ export class TreeModeComponent {
   }
 
   protected isColor(row: TreeRow): boolean {
-    return (
-      row.type === 'string' &&
-      /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(row.value as string)
-    );
+    if (row.type !== 'string') {
+      return false;
+    }
+    const v = row.value as string;
+    if (/^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)) {
+      return true;
+    }
+    if (/^(rgb|hsl)a?\(/i.test(v)) {
+      return true;
+    }
+    // CSS named colors (e.g. "gold"), validated via the browser when available.
+    return /^[a-z]+$/i.test(v) && typeof CSS !== 'undefined' && CSS.supports('color', v);
   }
 
   protected isLink(row: TreeRow): boolean {
     return row.type === 'string' && /^https?:\/\/\S+$/i.test(row.value as string);
+  }
+
+  /** "N items" / "N item" / "empty" badge for a container row. */
+  protected itemCountLabel(row: TreeRow): string {
+    if (row.childCount === 0) {
+      return 'empty';
+    }
+    return `${row.childCount} ${row.childCount === 1 ? 'item' : 'items'}`;
+  }
+
+  protected onBooleanChange(row: TreeRow, event: Event): void {
+    event.stopPropagation();
+    if (!this.store.readOnly()) {
+      this.store.updateValueAt(row.path, (event.target as HTMLInputElement).checked);
+    }
   }
 
   protected indentPx(depth: number): number {

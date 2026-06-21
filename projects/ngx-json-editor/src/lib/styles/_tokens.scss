@@ -1,62 +1,85 @@
 // Design tokens for ngx-json-editor.
 //
-// Every color, size, and radius is exposed as a CSS custom property prefixed
-// `--nje-` so host apps can re-theme the editor without recompiling SCSS.
-// `ngx-json-editor-tokens()` emits the light defaults; `*-dark()` overrides
-// the subset that differs in dark mode. Both are applied on the component host.
+// Default skin replicates jsoneditoronline.org's green theme. Every color,
+// size, and radius is a CSS custom property prefixed `--nje-` so host apps can
+// re-theme (or pixel-tune the green) without recompiling SCSS.
+// `ngx-json-editor-tokens()` emits the light defaults; `*-dark()` overrides the
+// subset that differs in dark mode.
 
 @mixin ngx-json-editor-tokens() {
+  // Menu / header bars (the signature jsoneditoronline green)
+  --nje-menu-bg: #4f9d4f;
+  --nje-menu-bg-strong: #3f8a3f;
+  --nje-menu-fg: #ffffff;
+  --nje-menu-hover: #5cb05c;
+  --nje-menu-border: #3f8a3f;
+
   // Surfaces
   --nje-bg: #ffffff;
-  --nje-bg-subtle: #f7f8fa;
+  --nje-bg-subtle: #ebf3e3; // toolbar / status bar (pale green)
   --nje-bg-raised: #ffffff;
-  --nje-bg-hover: #eef1f6;
-  --nje-bg-selected: #dbeafe;
-  --nje-bg-selected-muted: #eff6ff;
+  --nje-bg-hover: #eef5e8;
+  --nje-bg-selected: #d6ecc6;
+  --nje-bg-selected-muted: #eef6e6;
+
+  // Mode tabs (text | tree | table)
+  --nje-tab-bg: #ffffff;
+  --nje-tab-fg: #4a4a4a;
+  --nje-tab-active-bg: #d6ecc6;
+  --nje-tab-active-fg: #1a1a1a;
 
   // Text
-  --nje-fg: #1f2933;
-  --nje-fg-muted: #6b7280;
-  --nje-fg-faint: #9aa3af;
+  --nje-fg: #1a1a1a;
+  --nje-fg-muted: #5f6b57;
+  --nje-fg-faint: #98a890;
 
   // Borders / lines
-  --nje-border: #e2e6ec;
-  --nje-border-strong: #cbd2dc;
-  --nje-guide: #e8ebf0; // tree indent guides
+  --nje-border: #d7e6cb;
+  --nje-border-strong: #bcd5ac;
+  --nje-guide: #e1ecd8; // tree indent guides
 
   // Accent (focus, links, primary actions)
-  --nje-accent: #2563eb;
-  --nje-accent-hover: #1d4ed8;
+  --nje-accent: #4f9d4f;
+  --nje-accent-hover: #3f8a3f;
   --nje-accent-contrast: #ffffff;
-  --nje-focus-ring: #3b82f6;
+  --nje-focus-ring: #3f8a3f;
 
-  // Value-type colors (WCAG AA on --nje-bg)
-  --nje-type-key: #334155;
-  --nje-type-string: #0f7b3f;
-  --nje-type-number: #1d4ed8;
-  --nje-type-boolean: #7c3aed;
-  --nje-type-null: #6b7280;
-  --nje-type-object: #475569;
-  --nje-type-array: #475569;
+  // Editable value cell (the green-tinted boxes around tree values)
+  --nje-value-cell-bg: #f4faef;
+  --nje-value-cell-border: #d2e7c2;
+  --nje-value-cell-focus: #fffbe6;
+
+  // Item-count badge ("3 items")
+  --nje-badge-bg: #e3f0d8;
+  --nje-badge-fg: #4a6b3c;
+
+  // Value-type colors (kept close to jsoneditoronline: mostly dark, subtle hue)
+  --nje-type-key: #1a1a1a;
+  --nje-type-string: #1a7f37;
+  --nje-type-number: #1a1a1a;
+  --nje-type-boolean: #1a1a1a;
+  --nje-type-null: #b0306a;
+  --nje-type-object: #6f7d66;
+  --nje-type-array: #6f7d66;
 
   // Status colors
-  --nje-error: #dc2626;
-  --nje-error-bg: #fef2f2;
+  --nje-error: #d8000c;
+  --nje-error-bg: #fff0f0;
   --nje-warning: #d97706;
   --nje-warning-bg: #fffbeb;
-  --nje-success: #16a34a;
+  --nje-success: #1a7f37;
 
-  // Diff colors (compare mode)
-  --nje-diff-added-bg: #e6f6ec;
-  --nje-diff-added-fg: #0f7b3f;
-  --nje-diff-removed-bg: #fdecec;
+  // Diff colors (compare)
+  --nje-diff-added-bg: #e3f5d8;
+  --nje-diff-added-fg: #1a7f37;
+  --nje-diff-removed-bg: #fde2e2;
   --nje-diff-removed-fg: #b91c1c;
-  --nje-diff-changed-bg: #fef6e0;
-  --nje-diff-changed-fg: #92660a;
+  --nje-diff-changed-bg: #fdf3d4;
+  --nje-diff-changed-fg: #8a6400;
 
   // Search highlight
-  --nje-search-match: #fde68a;
-  --nje-search-match-active: #f59e0b;
+  --nje-search-match: #ffe9a8;
+  --nje-search-match-active: #ffc23d;
 
   // Geometry / type
   --nje-font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -64,61 +87,80 @@
     'SFMono-Regular', ui-monospace, 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace;
   --nje-font-size: 13px;
   --nje-font-size-sm: 12px;
-  --nje-line-height: 1.5;
-  --nje-row-height: 24px;
-  --nje-indent: 16px;
-  --nje-radius: 6px;
-  --nje-radius-sm: 4px;
-  --nje-gap: 8px;
-  --nje-toolbar-height: 40px;
-  --nje-statusbar-height: 26px;
-  --nje-shadow-pop: 0 6px 24px rgba(15, 23, 42, 0.16);
+  --nje-line-height: 1.45;
+  --nje-row-height: 22px;
+  --nje-indent: 18px;
+  --nje-radius: 3px;
+  --nje-radius-sm: 2px;
+  --nje-gap: 6px;
+  --nje-toolbar-height: 34px;
+  --nje-menu-height: 36px;
+  --nje-statusbar-height: 24px;
+  --nje-shadow-pop: 0 4px 18px rgba(31, 59, 23, 0.18);
 }
 
 @mixin ngx-json-editor-tokens-dark() {
-  --nje-bg: #1b1f27;
-  --nje-bg-subtle: #161a21;
-  --nje-bg-raised: #232833;
-  --nje-bg-hover: #2a303c;
-  --nje-bg-selected: #1e3a5f;
-  --nje-bg-selected-muted: #18293f;
+  --nje-menu-bg: #2f6b2f;
+  --nje-menu-bg-strong: #245224;
+  --nje-menu-fg: #eaf4ea;
+  --nje-menu-hover: #3a7d3a;
+  --nje-menu-border: #245224;
 
-  --nje-fg: #e5e9f0;
-  --nje-fg-muted: #9aa3b2;
-  --nje-fg-faint: #6b7486;
+  --nje-bg: #1b1f1b;
+  --nje-bg-subtle: #23291f;
+  --nje-bg-raised: #262d22;
+  --nje-bg-hover: #2c3527;
+  --nje-bg-selected: #2f4a26;
+  --nje-bg-selected-muted: #25331f;
 
-  --nje-border: #2d333f;
-  --nje-border-strong: #3a4150;
-  --nje-guide: #2a303c;
+  --nje-tab-bg: #262d22;
+  --nje-tab-fg: #c4d2ba;
+  --nje-tab-active-bg: #2f4a26;
+  --nje-tab-active-fg: #eaf4ea;
 
-  --nje-accent: #60a5fa;
-  --nje-accent-hover: #93c5fd;
-  --nje-accent-contrast: #0b1220;
-  --nje-focus-ring: #60a5fa;
+  --nje-fg: #e7efe1;
+  --nje-fg-muted: #9bab90;
+  --nje-fg-faint: #6c7a63;
 
-  --nje-type-key: #cbd5e1;
-  --nje-type-string: #6ee7a8;
-  --nje-type-number: #93c5fd;
-  --nje-type-boolean: #c4b5fd;
-  --nje-type-null: #94a3b8;
-  --nje-type-object: #cbd5e1;
-  --nje-type-array: #cbd5e1;
+  --nje-border: #2f3a29;
+  --nje-border-strong: #3c4a34;
+  --nje-guide: #2c3527;
+
+  --nje-accent: #6ec46e;
+  --nje-accent-hover: #8ad48a;
+  --nje-accent-contrast: #0e1a0e;
+  --nje-focus-ring: #6ec46e;
+
+  --nje-value-cell-bg: #232c1f;
+  --nje-value-cell-border: #38492f;
+  --nje-value-cell-focus: #3a3a1f;
+
+  --nje-badge-bg: #2f4a26;
+  --nje-badge-fg: #b6d6a6;
+
+  --nje-type-key: #e7efe1;
+  --nje-type-string: #8fd99a;
+  --nje-type-number: #e7efe1;
+  --nje-type-boolean: #e7efe1;
+  --nje-type-null: #e58bb0;
+  --nje-type-object: #aebaa3;
+  --nje-type-array: #aebaa3;
 
   --nje-error: #f87171;
-  --nje-error-bg: #3a1f24;
+  --nje-error-bg: #3a1f1f;
   --nje-warning: #fbbf24;
   --nje-warning-bg: #3a2f1a;
-  --nje-success: #4ade80;
+  --nje-success: #6ee787;
 
-  --nje-diff-added-bg: #14331f;
-  --nje-diff-added-fg: #6ee7a8;
+  --nje-diff-added-bg: #1f3a1c;
+  --nje-diff-added-fg: #8fd99a;
   --nje-diff-removed-bg: #3a1c1c;
   --nje-diff-removed-fg: #fca5a5;
   --nje-diff-changed-bg: #3a3018;
   --nje-diff-changed-fg: #fcd34d;
 
-  --nje-search-match: #78611f;
+  --nje-search-match: #6b5a1f;
   --nje-search-match-active: #b8860b;
 
-  --nje-shadow-pop: 0 6px 24px rgba(0, 0, 0, 0.5);
+  --nje-shadow-pop: 0 4px 18px rgba(0, 0, 0, 0.5);
 }

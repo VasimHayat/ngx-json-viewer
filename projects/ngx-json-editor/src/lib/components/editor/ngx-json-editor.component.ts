@@ -13,9 +13,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
 import { AutofocusDirective } from '../../directives/autofocus.directive';
+import { IconComponent } from '../icon/icon.component';
 import { JsonPath, JsonValue, ValidationError, pathToDisplay } from 'ngx-json-editor/core';
 import { CLIPBOARD_ADAPTER, FILE_ADAPTER, QUERY_ENGINE } from '../../adapters/tokens';
 import {
@@ -50,8 +50,8 @@ import { CompareComponent } from '../dialogs/compare.component';
   imports: [
     FormsModule,
     AutofocusDirective,
-    ButtonModule,
     TooltipModule,
+    IconComponent,
     TextModeComponent,
     TreeModeComponent,
     TableModeComponent,
@@ -65,6 +65,7 @@ import { CompareComponent } from '../dialogs/compare.component';
   host: {
     class: 'nje-root',
     '[class.nje-theme-dark]': 'isDark()',
+    '[class.nje-fullscreen]': 'fullscreen()',
     '[attr.data-mode]': 'store.mode()',
     '(keydown)': 'onKeydown($event)',
   },
@@ -82,8 +83,15 @@ export class NgxJsonEditorComponent {
 
   /** Whether the find bar is open. */
   readonly searchOpen = signal<boolean>(false);
+  /** Whether this pane is maximized. */
+  readonly fullscreen = signal<boolean>(false);
   /** Replacement text for text-mode search & replace. */
   protected replaceText = '';
+
+  /** Optional document title shown in the green menu bar (used by the workspace). */
+  readonly title = input<string>('');
+  /** Show the green menu bar (title + document operations). */
+  readonly menuBar = input<boolean>(true);
 
   // ── Two-way bindable content ──────────────────────────────────────────────
   readonly content = model<JsonEditorContent>({ json: null });
@@ -285,6 +293,22 @@ export class NgxJsonEditorComponent {
   }
 
   // ── Document operations ─────────────────────────────────────────────────
+  /** Reset to an empty document. */
+  newDocument(): void {
+    this.store.replaceDocument({ text: '' });
+  }
+
+  /** Toggle maximizing this pane to fill the viewport. */
+  toggleFullscreen(): void {
+    this.fullscreen.update((v) => !v);
+  }
+
+  /** Format from the "format the JSON?" prompt. */
+  acceptFormatPrompt(): void {
+    this.store.format();
+    this.store.dismissFormatPrompt();
+  }
+
   /** Open a local .json file via the injected FILE_ADAPTER. */
   async openFile(): Promise<void> {
     const file = await this.fileAdapter.openFile();
@@ -390,6 +414,19 @@ export class NgxJsonEditorComponent {
 
   set(c: JsonEditorContent): void {
     this.store.replaceDocument(c);
+  }
+
+  /** Select a path, expanding ancestors and switching to tree mode to show it. */
+  selectPath(path: JsonPath): void {
+    if (this.store.mode() === 'text') {
+      this.store.setMode('tree');
+    }
+    this.store.revealPath(path);
+  }
+
+  /** Open the Transform dialog. */
+  transformDialog(): void {
+    this.openTransform();
   }
 
   transform(query: string): JsonEditorContent {

@@ -6,8 +6,9 @@
  * the most commonly needed framework-free types from `ngx-json-editor/core`.
  */
 
-// Primary component
+// Primary component + the dual-document compare workspace
 export { NgxJsonEditorComponent } from './lib/components/editor/ngx-json-editor.component';
+export { NgxJsonWorkspaceComponent } from './lib/components/workspace/workspace.component';
 
 // Public models / configuration
 export * from './lib/models';

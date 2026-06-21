@@ -1,54 +1,56 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import {
-  EditorMode,
-  JsonEditorContent,
-  NgxJsonEditorComponent,
-  OnChangeStatus,
-} from 'ngx-json-editor';
+import { JsonEditorContent, NgxJsonWorkspaceComponent } from 'ngx-json-editor';
 
-/** Sample document used by the playground to exercise the editor. */
-const SAMPLE: JsonEditorContent = {
+/** Left demo document (a config-style payload). */
+const LEFT: JsonEditorContent = {
   json: {
-    name: 'ngx-json-editor',
-    version: '0.1.0',
-    private: false,
-    keywords: ['angular', 'json', 'editor', 'tree', 'codemirror'],
-    repository: { type: 'git', url: 'https://github.com/ngx-json-editor/ngx-json-editor' },
-    stats: { stars: 0, openIssues: 3, coverage: 0.0 },
-    maintainers: [
-      { name: 'Ada', active: true, color: '#2563eb' },
-      { name: 'Linus', active: false, color: '#16a34a' },
+    redirectUrl: 'https://example.com/app/#/redirect',
+    isLoginDisabled: false,
+    timeTakenInMillis: 29,
+    isUserConsentRequired: false,
+    globalTemplates: [],
+    appUrl: 'https://example.com/app/',
+    isSupportUser: false,
+    showPswdExpiryMsg: false,
+    custUserArray: [
+      {
+        firstName: 'A',
+        lastName: 'D',
+        customerEmailId: 'user@demo.com',
+        primaryKey: 27652,
+      },
     ],
-    homepage: 'https://example.com',
-    deprecated: null,
+    daysToPswdExpire: 90,
+  },
+};
+
+/** Right demo document (one of every value type — mirrors jsoneditoronline). */
+const RIGHT: JsonEditorContent = {
+  json: {
+    array: [1, 2, 3],
+    boolean: true,
+    color: 'gold',
+    null: null,
+    number: 123,
+    object: { a: 'b', c: 'd' },
+    string: 'Hello World',
   },
 };
 
 @Component({
   selector: 'app-root',
-  imports: [NgxJsonEditorComponent],
+  imports: [NgxJsonWorkspaceComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
-  readonly content = signal<JsonEditorContent>(SAMPLE);
-  readonly mode = signal<EditorMode>('tree');
+  readonly left = signal<JsonEditorContent>(LEFT);
+  readonly right = signal<JsonEditorContent>(RIGHT);
   readonly theme = signal<'light' | 'dark' | 'auto'>('light');
-  readonly lastChange = signal<string>('—');
-
-  readonly modes: readonly EditorMode[] = ['tree', 'text', 'table'];
   readonly themes = ['light', 'dark', 'auto'] as const;
 
-  onContentChange(status: OnChangeStatus): void {
-    this.lastChange.set(`${new Date().toLocaleTimeString()} · ${status.errors.length} error(s)`);
-  }
-
-  loadEmpty(): void {
-    this.content.set({ json: {} });
-  }
-
-  loadSample(): void {
-    this.content.set(SAMPLE);
+  toggleTheme(value: string): void {
+    this.theme.set(value as 'light' | 'dark' | 'auto');
   }
 }

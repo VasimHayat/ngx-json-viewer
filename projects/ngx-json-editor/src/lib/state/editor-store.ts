@@ -65,6 +65,8 @@ export class EditorStore {
 
   readonly indentation = signal<number | 'tab'>(2);
   readonly readOnly = signal<boolean>(false);
+  /** Cursor position in text mode (1-based), shown in the status bar. */
+  readonly cursor = signal<{ line: number; column: number }>({ line: 1, column: 1 });
 
   // ── Search ──────────────────────────────────────────────────────────────
   readonly searchQuery = signal<string>('');
@@ -143,6 +145,26 @@ export class EditorStore {
     return out;
   });
 
+  /** Dismissal flag for the "format the JSON?" prompt. */
+  private readonly formatPromptDismissed = signal<boolean>(false);
+
+  /**
+   * Whether to show the "Do you want to format the JSON?" prompt (text mode,
+   * valid but compact/single-line JSON that hasn't been dismissed) — mirrors
+   * jsoneditoronline's behaviour when a minified document is loaded.
+   */
+  readonly showFormatPrompt = computed<boolean>(() => {
+    if (this.mode() !== 'text' || this.formatPromptDismissed()) {
+      return false;
+    }
+    const text = this.text();
+    return this.json() !== undefined && text.trim().length > 0 && !text.includes('\n');
+  });
+
+  dismissFormatPrompt(): void {
+    this.formatPromptDismissed.set(true);
+  }
+
   readonly size = computed<number>(() => this.text().length);
   readonly isEmpty = computed<boolean>(() => {
     const v = this.json();
@@ -161,6 +183,7 @@ export class EditorStore {
     this._content.set(normalize(content));
     this.undoStack = [];
     this.redoStack = [];
+    this.formatPromptDismissed.set(false);
     this.refreshHistoryFlags();
   }
 
@@ -170,6 +193,10 @@ export class EditorStore {
 
   setReadOnly(ro: boolean): void {
     this.readOnly.set(ro);
+  }
+
+  setCursor(line: number, column: number): void {
+    this.cursor.set({ line, column });
   }
 
   setHistoryLimit(limit: number): void {
@@ -279,16 +306,21 @@ export class EditorStore {
     return count;
   }
 
-  private focusActiveMatch(): void {
-    const match = this.activeMatch();
-    if (!match) return;
-    this.setSelection(match.path);
-    // Expand ancestors so the match is visible in the tree.
+  /** Select a path and expand its ancestors so it is visible in the tree. */
+  revealPath(path: JsonPath): void {
+    this.setSelection(path);
     const expanded = new Set(this.expanded());
-    for (let i = 1; i < match.path.length; i++) {
-      expanded.add(pathToPointer(match.path.slice(0, i)));
+    for (let i = 1; i < path.length; i++) {
+      expanded.add(pathToPointer(path.slice(0, i)));
     }
     this.expanded.set(expanded);
+  }
+
+  private focusActiveMatch(): void {
+    const match = this.activeMatch();
+    if (match) {
+      this.revealPath(match.path);
+    }
   }
 
   toggleExpanded(path: JsonPath): void {

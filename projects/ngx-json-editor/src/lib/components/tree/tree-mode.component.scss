@@ -121,6 +121,54 @@
   font-style: italic;
 }
 
+.nje-bracket {
+  color: var(--nje-type-object);
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+// Gray "N items" badge next to a container.
+.nje-count {
+  font-family: var(--nje-font-ui);
+  font-size: 11px;
+  color: var(--nje-badge-fg);
+  background: var(--nje-badge-bg);
+  border-radius: 8px;
+  padding: 0 7px;
+  line-height: 16px;
+}
+
+// The green-tinted cell wrapping an editable value (jsoneditoronline look).
+.nje-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 14px;
+  padding: 0 4px;
+  border: 1px solid transparent;
+  border-radius: var(--nje-radius-sm);
+  background: var(--nje-value-cell-bg);
+  border-color: var(--nje-value-cell-border);
+
+  &--editable {
+    cursor: text;
+  }
+
+  &--bool {
+    background: transparent;
+    border-color: transparent;
+    padding-left: 0;
+  }
+}
+
+.nje-bool {
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  accent-color: var(--nje-accent);
+  cursor: pointer;
+}
+
 .nje-value {
   &--editable {
     cursor: text;

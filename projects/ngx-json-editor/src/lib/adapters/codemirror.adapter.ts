@@ -44,6 +44,11 @@ export class CodeMirrorAdapter implements CodeEditorAdapter {
       if (update.docChanged) {
         options.onChange?.(update.state.doc.toString());
       }
+      if (update.selectionSet || update.docChanged) {
+        const head = update.state.selection.main.head;
+        const line = update.state.doc.lineAt(head);
+        options.onCursor?.(line.number, head - line.from + 1);
+      }
     });
 
     const state = EditorState.create({

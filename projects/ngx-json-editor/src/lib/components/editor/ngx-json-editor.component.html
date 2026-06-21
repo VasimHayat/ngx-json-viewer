@@ -1,10 +1,71 @@
+@if (menuBar()) {
+  <div class="nje-menu">
+    @if (title()) {
+      <span class="nje-doc-title" [title]="title()">{{ title() }}</span>
+    }
+    <div class="nje-menu-spacer"></div>
+    <div class="nje-menu-actions">
+      <button
+        type="button"
+        class="nje-menu-btn"
+        [pTooltip]="strings().emptyDocument"
+        [attr.aria-label]="strings().emptyDocument"
+        (click)="newDocument()"
+      >
+        <ngx-icon name="new" />
+      </button>
+      @if (features().importFile !== false || features().importUrl !== false) {
+        <button
+          type="button"
+          class="nje-menu-btn"
+          [pTooltip]="strings().importFile"
+          [attr.aria-label]="strings().importFile"
+          (click)="openImport()"
+        >
+          <ngx-icon name="open" />
+        </button>
+      }
+      @if (features().download !== false) {
+        <button
+          type="button"
+          class="nje-menu-btn"
+          [pTooltip]="strings().download"
+          [attr.aria-label]="strings().download"
+          (click)="download()"
+        >
+          <ngx-icon name="save" />
+        </button>
+      }
+      <button
+        type="button"
+        class="nje-menu-btn"
+        [pTooltip]="strings().copy"
+        [attr.aria-label]="strings().copy"
+        (click)="copyDocument()"
+      >
+        <ngx-icon name="copy" />
+      </button>
+      <button
+        type="button"
+        class="nje-menu-btn"
+        [pTooltip]="'Full screen'"
+        [attr.aria-label]="'Full screen'"
+        [attr.aria-pressed]="fullscreen()"
+        (click)="toggleFullscreen()"
+      >
+        <ngx-icon name="fullscreen" />
+      </button>
+    </div>
+  </div>
+}
+
 <div class="nje-toolbar" role="toolbar" [attr.aria-label]="strings().modeLabel">
-  <div class="nje-mode-switch" role="group" [attr.aria-label]="strings().modeLabel">
+  <div class="nje-tabs" role="group" [attr.aria-label]="strings().modeLabel">
     @for (m of availableModes(); track m) {
       <button
         type="button"
-        class="nje-mode-btn"
-        [class.nje-mode-btn--active]="store.mode() === m"
+        class="nje-tab"
+        [class.nje-tab--active]="store.mode() === m"
         [attr.aria-pressed]="store.mode() === m"
         (click)="setMode(m)"
       >
@@ -13,162 +74,135 @@
     }
   </div>
 
-  <div class="nje-toolbar-spacer"></div>
-
-  <div class="nje-toolbar-actions">
+  <div class="nje-toolbar-group">
     @if (store.mode() === 'tree' && features().expandCollapseAll !== false) {
-      <p-button
-        [label]="strings().expandAll"
-        severity="secondary"
-        size="small"
-        [text]="true"
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().expandAll"
-        (onClick)="expandAll()"
-      />
-      <p-button
-        [label]="strings().collapseAll"
-        severity="secondary"
-        size="small"
-        [text]="true"
+        [attr.aria-label]="strings().expandAll"
+        (click)="expandAll()"
+      >
+        <ngx-icon name="expand" />
+      </button>
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().collapseAll"
-        (onClick)="collapseAll()"
-      />
-    }
-    @if (features().undoRedo !== false) {
-      <p-button
-        [label]="strings().undo"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [disabled]="!store.canUndo() || readOnly()"
-        [pTooltip]="strings().undo"
-        (onClick)="undo()"
-      />
-      <p-button
-        [label]="strings().redo"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [disabled]="!store.canRedo() || readOnly()"
-        [pTooltip]="strings().redo"
-        (onClick)="redo()"
-      />
+        [attr.aria-label]="strings().collapseAll"
+        (click)="collapseAll()"
+      >
+        <ngx-icon name="collapse" />
+      </button>
+      <span class="nje-tb-sep"></span>
     }
     @if (features().format !== false) {
-      <p-button
-        [label]="strings().format"
-        severity="secondary"
-        size="small"
-        [text]="true"
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().format"
-        (onClick)="format()"
-      />
+        [attr.aria-label]="strings().format"
+        (click)="format()"
+      >
+        <ngx-icon name="format" />
+      </button>
     }
     @if (features().compact !== false) {
-      <p-button
-        [label]="strings().compact"
-        severity="secondary"
-        size="small"
-        [text]="true"
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().compact"
-        (onClick)="compact()"
-      />
-    }
-    @if (features().repair !== false && !readOnly()) {
-      <p-button
-        [label]="strings().repair"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [pTooltip]="strings().repair"
-        (onClick)="repair()"
-      />
+        [attr.aria-label]="strings().compact"
+        (click)="compact()"
+      >
+        <ngx-icon name="compact" />
+      </button>
     }
     @if (features().sort !== false && !readOnly()) {
-      <p-button
-        [label]="strings().sort"
-        severity="secondary"
-        size="small"
-        [text]="true"
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().sort"
-        (onClick)="openSort()"
-      />
-    }
-    @if (features().filter !== false) {
-      <p-button
-        [label]="strings().filter"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [pTooltip]="strings().filter"
-        (onClick)="openFilter()"
-      />
+        [attr.aria-label]="strings().sort"
+        (click)="openSort()"
+      >
+        <ngx-icon name="sort" />
+      </button>
     }
     @if (features().transform !== false) {
-      <p-button
-        [label]="strings().transform"
-        severity="secondary"
-        size="small"
-        [text]="true"
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().transform"
-        (onClick)="openTransform()"
-      />
+        [attr.aria-label]="strings().transform"
+        (click)="openTransform()"
+      >
+        <ngx-icon name="transform" />
+      </button>
+    }
+    @if (features().filter !== false) {
+      <button
+        type="button"
+        class="ngx-icon-btn"
+        [pTooltip]="strings().filter"
+        [attr.aria-label]="strings().filter"
+        (click)="openFilter()"
+      >
+        <ngx-icon name="filter" />
+      </button>
     }
     @if (features().search !== false) {
-      <p-button
-        [label]="strings().search"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [class.nje-active]="searchOpen()"
+      <button
+        type="button"
+        class="ngx-icon-btn"
+        [class.ngx-icon-btn--active]="searchOpen()"
         [pTooltip]="strings().search"
-        (onClick)="toggleSearch()"
-      />
+        [attr.aria-label]="strings().search"
+        (click)="toggleSearch()"
+      >
+        <ngx-icon name="search" />
+      </button>
     }
-    <span class="nje-toolbar-divider"></span>
-    @if (features().importFile !== false || features().importUrl !== false) {
-      <p-button
-        [label]="strings().importFile"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [pTooltip]="strings().importFile"
-        (onClick)="openImport()"
-      />
-    }
-    @if (features().download !== false) {
-      <p-button
-        [label]="strings().download"
-        severity="secondary"
-        size="small"
-        [text]="true"
-        [pTooltip]="strings().download"
-        (onClick)="download()"
-      />
-    }
-    <p-button
-      [label]="strings().copy"
-      severity="secondary"
-      size="small"
-      [text]="true"
-      [pTooltip]="strings().copy"
-      (onClick)="copyDocument()"
-    />
     @if (features().compare !== false) {
-      <p-button
-        [label]="strings().compare"
-        severity="secondary"
-        size="small"
-        [text]="true"
+      <button
+        type="button"
+        class="ngx-icon-btn"
         [pTooltip]="strings().compare"
-        (onClick)="openCompare()"
-      />
+        [attr.aria-label]="strings().compare"
+        (click)="openCompare()"
+      >
+        <ngx-icon name="compare" />
+      </button>
+    }
+    @if (features().undoRedo !== false) {
+      <span class="nje-tb-sep"></span>
+      <button
+        type="button"
+        class="ngx-icon-btn"
+        [disabled]="!store.canUndo() || readOnly()"
+        [pTooltip]="strings().undo"
+        [attr.aria-label]="strings().undo"
+        (click)="undo()"
+      >
+        <ngx-icon name="undo" />
+      </button>
+      <button
+        type="button"
+        class="ngx-icon-btn"
+        [disabled]="!store.canRedo() || readOnly()"
+        [pTooltip]="strings().redo"
+        [attr.aria-label]="strings().redo"
+        (click)="redo()"
+      >
+        <ngx-icon name="redo" />
+      </button>
     }
   </div>
 </div>
 
 @if (searchOpen() && features().search !== false) {
   <div class="nje-searchbar" role="search">
+    <ngx-icon name="search" />
     <input
       type="text"
       class="nje-search-input"
@@ -184,20 +218,26 @@
         {{ strings().noMatches }}
       }
     </span>
-    <p-button
-      [label]="strings().previous"
-      size="small"
-      [text]="true"
+    <button
+      type="button"
+      class="ngx-icon-btn"
       [disabled]="store.searchMatches().length === 0"
-      (onClick)="prevMatch()"
-    />
-    <p-button
-      [label]="strings().next"
-      size="small"
-      [text]="true"
+      [pTooltip]="strings().previous"
+      [attr.aria-label]="strings().previous"
+      (click)="prevMatch()"
+    >
+      <ngx-icon name="chevron-up" />
+    </button>
+    <button
+      type="button"
+      class="ngx-icon-btn"
       [disabled]="store.searchMatches().length === 0"
-      (onClick)="nextMatch()"
-    />
+      [pTooltip]="strings().next"
+      [attr.aria-label]="strings().next"
+      (click)="nextMatch()"
+    >
+      <ngx-icon name="chevron-down" />
+    </button>
     @if (store.mode() === 'text' && features().searchReplace !== false && !readOnly()) {
       <input
         type="text"
@@ -205,14 +245,19 @@
         [placeholder]="strings().replacePlaceholder"
         [(ngModel)]="replaceText"
       />
-      <p-button
-        [label]="strings().replaceAll"
-        size="small"
-        [text]="true"
-        (onClick)="replaceAll()"
-      />
+      <button type="button" class="nje-text-btn" (click)="replaceAll()">
+        {{ strings().replaceAll }}
+      </button>
     }
-    <p-button [label]="strings().close" size="small" [text]="true" (onClick)="toggleSearch()" />
+    <button
+      type="button"
+      class="ngx-icon-btn"
+      [pTooltip]="strings().close"
+      [attr.aria-label]="strings().close"
+      (click)="toggleSearch()"
+    >
+      <ngx-icon name="chevron-up" />
+    </button>
   </div>
 }
 
@@ -248,16 +293,37 @@
   }
 </div>
 
+@if (store.showFormatPrompt()) {
+  <div class="nje-format-prompt">
+    <span>Do you want to format the JSON?</span>
+    <div class="nje-format-prompt-actions">
+      <button
+        type="button"
+        class="nje-prompt-btn nje-prompt-btn--primary"
+        (click)="acceptFormatPrompt()"
+      >
+        <ngx-icon name="format" />{{ strings().format }}
+      </button>
+      <button type="button" class="nje-prompt-btn" (click)="store.dismissFormatPrompt()">
+        ✕ No thanks
+      </button>
+    </div>
+  </div>
+}
+
 <div class="nje-statusbar" role="status" aria-live="polite">
-  <span class="nje-status-mode">{{ store.mode() }}</span>
-  <span class="nje-status-sep">·</span>
-  <span class="nje-status-size">{{ store.size() }} {{ strings().statusSize }}</span>
+  @if (store.mode() === 'text') {
+    <span class="nje-status-cursor"
+      >Line: {{ store.cursor().line }}&nbsp;&nbsp;Column: {{ store.cursor().column }}</span
+    >
+  } @else {
+    <span class="nje-status-mode">{{ store.mode() }}</span>
+    <span class="nje-status-sep">·</span>
+    <span class="nje-status-size">{{ store.size() }} {{ strings().statusSize }}</span>
+  }
   @if (store.errors().length > 0) {
     <span class="nje-status-sep">·</span>
     <span class="nje-status-errors">{{ store.errors().length }} {{ strings().statusErrors }}</span>
-  } @else {
-    <span class="nje-status-sep">·</span>
-    <span class="nje-status-valid">{{ strings().statusValid }}</span>
   }
   @if (selectionLabel()) {
     <span class="nje-status-sep">·</span>

@@ -1,37 +1,21 @@
 <header class="pg-header">
   <h1 class="pg-title">ngx-json-editor <span class="pg-badge">playground</span></h1>
-  <div class="pg-controls">
-    <label class="pg-field">
-      <span>Mode</span>
-      <select [value]="mode()" (change)="mode.set($any($event.target).value)">
-        @for (m of modes; track m) {
-          <option [value]="m">{{ m }}</option>
-        }
-      </select>
-    </label>
-    <label class="pg-field">
-      <span>Theme</span>
-      <select [value]="theme()" (change)="theme.set($any($event.target).value)">
-        @for (t of themes; track t) {
-          <option [value]="t">{{ t }}</option>
-        }
-      </select>
-    </label>
-    <button type="button" class="pg-btn" (click)="loadSample()">Sample</button>
-    <button type="button" class="pg-btn" (click)="loadEmpty()">Empty</button>
-  </div>
+  <label class="pg-field">
+    <span>Theme</span>
+    <select [value]="theme()" (change)="toggleTheme($any($event.target).value)">
+      @for (t of themes; track t) {
+        <option [value]="t">{{ t }}</option>
+      }
+    </select>
+  </label>
 </header>
 
 <main class="pg-main">
-  <ngx-json-editor
-    class="pg-editor tw-shadow-sm tw-rounded-md"
-    [(content)]="content"
-    [mode]="mode()"
+  <ngx-json-workspace
+    [(left)]="left"
+    [(right)]="right"
+    leftTitle="New document 2"
+    rightTitle="New document 1"
     [theme]="theme()"
-    (documentChange)="onContentChange($event)"
   />
 </main>
-
-<footer class="pg-footer">
-  <span>Last change: {{ lastChange() }}</span>
-</footer>
