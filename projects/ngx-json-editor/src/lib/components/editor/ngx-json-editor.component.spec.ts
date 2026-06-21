@@ -41,11 +41,22 @@ describe('NgxJsonEditorComponent', () => {
     expect(host.querySelector('ngx-json-tree')).toBeTruthy();
   });
 
-  it('renders a formatted preview in table mode (until table lands)', () => {
-    fixture.componentRef.setInput('content', { json: { a: 1 } });
+  it('renders the table component in table mode for an array', () => {
+    fixture.componentRef.setInput('content', { json: [{ a: 1 }] });
     fixture.componentRef.setInput('mode', 'table');
     fixture.detectChanges();
-    expect(host.querySelector('.nje-preview')?.textContent).toContain('"a": 1');
+    expect(host.querySelector('ngx-json-table')).toBeTruthy();
+  });
+
+  it('opens the find bar and reports match counts', () => {
+    fixture.componentRef.setInput('content', { json: { name: 'Ada' } });
+    fixture.detectChanges();
+    component.toggleSearch();
+    fixture.detectChanges();
+    expect(host.querySelector('.nje-searchbar')).toBeTruthy();
+    component.onSearchInput('Ada');
+    fixture.detectChanges();
+    expect(component.searchOpen()).toBeTrue();
   });
 
   it('switches mode via the store and emits modeChange', () => {

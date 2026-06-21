@@ -1,0 +1,123 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.nje-table-notice {
+  padding: 16px;
+  color: var(--nje-fg-faint);
+  font-style: italic;
+}
+
+.nje-table {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--nje-font-mono);
+  font-size: var(--nje-font-size);
+}
+
+.nje-thead {
+  display: flex;
+  flex: 0 0 auto;
+  background: var(--nje-bg-subtle);
+  border-bottom: 1px solid var(--nje-border-strong);
+  font-weight: 600;
+  color: var(--nje-type-key);
+}
+
+.nje-tbody-vp {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.nje-th,
+.nje-td {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px 8px;
+  border-right: 1px solid var(--nje-border);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nje-th-index,
+.nje-td-index {
+  flex: 0 0 48px;
+  color: var(--nje-fg-faint);
+  text-align: right;
+}
+
+.nje-th-actions,
+.nje-td-actions {
+  flex: 0 0 36px;
+  border-right: 0;
+  text-align: center;
+}
+
+.nje-tr {
+  display: flex;
+  height: var(--nje-row-height, 30px);
+  align-items: stretch;
+  border-bottom: 1px solid var(--nje-border);
+  cursor: default;
+
+  &:hover {
+    background: var(--nje-bg-hover);
+  }
+}
+
+.nje-td {
+  display: flex;
+  align-items: center;
+  cursor: text;
+}
+
+.nje-cell-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nje-cell-edit {
+  width: 100%;
+  font: inherit;
+  border: 1px solid var(--nje-accent);
+  border-radius: var(--nje-radius-sm);
+  padding: 0 4px;
+  background: var(--nje-bg-raised);
+  color: var(--nje-fg);
+}
+
+.nje-row-remove {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--nje-fg-faint);
+  cursor: pointer;
+  font-size: 12px;
+
+  &:hover {
+    color: var(--nje-error);
+  }
+}
+
+.nje-type-string {
+  color: var(--nje-type-string);
+}
+.nje-type-number {
+  color: var(--nje-type-number);
+}
+.nje-type-boolean {
+  color: var(--nje-type-boolean);
+}
+.nje-type-null {
+  color: var(--nje-type-null);
+  font-style: italic;
+}
+.nje-type-object,
+.nje-type-array {
+  color: var(--nje-fg-muted);
+  font-style: italic;
+}

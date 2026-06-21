@@ -1,0 +1,60 @@
+@if (array() === null) {
+  <div class="nje-table-notice">Table mode requires the document to be an array.</div>
+} @else if (rows().length === 0) {
+  <div class="nje-table-notice">The array is empty.</div>
+} @else {
+  <div class="nje-table" role="treegrid" aria-label="JSON table">
+    <div class="nje-thead" role="row">
+      <div class="nje-th nje-th-index">#</div>
+      @for (col of columns(); track col) {
+        <div class="nje-th" role="columnheader">{{ col }}</div>
+      }
+      <div class="nje-th nje-th-actions"></div>
+    </div>
+
+    <cdk-virtual-scroll-viewport [itemSize]="rowHeight" class="nje-tbody-vp">
+      <div
+        *cdkVirtualFor="let row of rows(); let i = index; trackBy: trackRow"
+        class="nje-tr"
+        role="row"
+        tabindex="0"
+        (click)="selectRow(i)"
+        (keydown.enter)="selectRow(i)"
+      >
+        <div class="nje-td nje-td-index" role="rowheader">{{ i }}</div>
+        @for (col of columns(); track col) {
+          <div
+            class="nje-td nje-type-{{ cellType(i, col) }}"
+            role="gridcell"
+            (dblclick)="beginEdit(i, col, $event)"
+          >
+            @if (isEditing(i, col)) {
+              <input
+                class="nje-cell-edit"
+                [(ngModel)]="draft"
+                (keydown)="onEditKeydown(i, col, $event)"
+                (blur)="commit(i, col)"
+                (click)="$event.stopPropagation()"
+                ngxAutofocus
+              />
+            } @else {
+              <span class="nje-cell-value">{{ cellDisplay(i, col) }}</span>
+            }
+          </div>
+        }
+        <div class="nje-td nje-td-actions">
+          @if (!store.readOnly()) {
+            <button
+              type="button"
+              class="nje-row-remove"
+              aria-label="Remove row"
+              (click)="removeRow(i, $event)"
+            >
+              ✕
+            </button>
+          }
+        </div>
+      </div>
+    </cdk-virtual-scroll-viewport>
+  </div>
+}

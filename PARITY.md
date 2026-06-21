@@ -11,7 +11,7 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | --- | --- | --- | --- |
 | Tree mode | ✅ | `components/tree/` (virtualized CDK scroll, lazy via expansion) | `tree-model.spec.ts`, tree component spec |
 | Text/Code mode | ✅ | `components/text/` + `adapters/codemirror.adapter.ts` (CM6: highlight, line numbers, bracket match, fold, gutters) | `editor-store.spec.ts`, component spec |
-| Table mode | ⬜ | `components/table/` (Phase 4) | |
+| Table mode | ✅ | `components/table/` (virtualized grid, union columns, inline edit) | `table.spec.ts`, table component spec |
 | Runtime mode switch | ✅ | editor component `setMode` + `EditorStore.mode` | `ngx-json-editor.component.spec.ts` |
 
 ## 3.2 Tree mode
@@ -42,12 +42,12 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
 | Undo / redo | ✅ | `EditorStore` history (patch-aware) + toolbar | `editor-store.spec.ts`, component spec |
-| Search + highlight | ⬜ | (Phase 4) | |
-| Search & replace (text) | ⬜ | (Phase 4) | |
-| Sort dialog | 🟡 | `core/sort.ts` (engine ✅, dialog Phase 4) | `sort.spec.ts` |
-| Filter dialog | ⬜ | (Phase 4) | |
-| Transform (JMESPath) | 🟡 | `core/query.ts` (engine ✅, dialog Phase 4) | `query.spec.ts` |
-| JSON Schema validation (Ajv) | 🟡 | `core/schema.ts` (engine ✅, surfacing Phase 4) | `schema.spec.ts` |
+| Search + highlight | ✅ | `core/search.ts` + store nav (find bar, count, prev/next, auto-expand) | `search.spec.ts`, `editor-store.spec.ts` |
+| Search & replace (text) | ✅ | find bar replace field → `replaceAllInText` | `editor-store.spec.ts` |
+| Sort dialog | ✅ | `dialogs/` Sort (by key/value, dir, recursive) → `core/sort.ts` | `sort.spec.ts`, `editor-store.spec.ts` |
+| Filter dialog | ✅ | `dialogs/` Filter (field/op/value) → JMESPath, live preview | `query.spec.ts` |
+| Transform (JMESPath) | ✅ | `dialogs/` Transform (query + builder, live preview, apply/copy) | `query.spec.ts` |
+| JSON Schema validation (Ajv) | ✅ | `core/schema.ts` → store errors → tree markers + status bar | `schema.spec.ts`, `editor-store.spec.ts` |
 | Status bar | ✅ | editor statusbar (mode, size, error count, selection path) | component spec |
 
 ## 3.5 Document operations

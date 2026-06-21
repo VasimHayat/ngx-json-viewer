@@ -84,8 +84,98 @@
         (onClick)="repair()"
       />
     }
+    @if (features().sort !== false && !readOnly()) {
+      <p-button
+        [label]="strings().sort"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().sort"
+        (onClick)="openSort()"
+      />
+    }
+    @if (features().filter !== false) {
+      <p-button
+        [label]="strings().filter"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().filter"
+        (onClick)="openFilter()"
+      />
+    }
+    @if (features().transform !== false) {
+      <p-button
+        [label]="strings().transform"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [pTooltip]="strings().transform"
+        (onClick)="openTransform()"
+      />
+    }
+    @if (features().search !== false) {
+      <p-button
+        [label]="strings().search"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        [class.nje-active]="searchOpen()"
+        [pTooltip]="strings().search"
+        (onClick)="toggleSearch()"
+      />
+    }
   </div>
 </div>
+
+@if (searchOpen() && features().search !== false) {
+  <div class="nje-searchbar" role="search">
+    <input
+      type="text"
+      class="nje-search-input"
+      [placeholder]="strings().searchPlaceholder"
+      [value]="store.searchQuery()"
+      (input)="onSearchInput($any($event.target).value)"
+      ngxAutofocus
+    />
+    <span class="nje-search-count">
+      @if (store.searchMatches().length > 0) {
+        {{ store.activeMatchIndex() + 1 }} / {{ store.searchMatches().length }}
+      } @else if (store.searchQuery()) {
+        {{ strings().noMatches }}
+      }
+    </span>
+    <p-button
+      [label]="strings().previous"
+      size="small"
+      [text]="true"
+      [disabled]="store.searchMatches().length === 0"
+      (onClick)="prevMatch()"
+    />
+    <p-button
+      [label]="strings().next"
+      size="small"
+      [text]="true"
+      [disabled]="store.searchMatches().length === 0"
+      (onClick)="nextMatch()"
+    />
+    @if (store.mode() === 'text' && features().searchReplace !== false && !readOnly()) {
+      <input
+        type="text"
+        class="nje-search-input"
+        [placeholder]="strings().replacePlaceholder"
+        [(ngModel)]="replaceText"
+      />
+      <p-button
+        [label]="strings().replaceAll"
+        size="small"
+        [text]="true"
+        (onClick)="replaceAll()"
+      />
+    }
+    <p-button [label]="strings().close" size="small" [text]="true" (onClick)="toggleSearch()" />
+  </div>
+}
 
 <div #body class="nje-body" tabindex="0" [attr.data-mode]="store.mode()">
   @switch (store.mode()) {
@@ -99,13 +189,15 @@
         <ngx-json-tree />
       }
     }
-    @default {
-      <!-- Table mode (Phase 4) renders here. Until then, a formatted preview. -->
+    @case ('table') {
       @if (store.isEmpty()) {
         <div class="nje-empty">{{ strings().emptyDocument }}</div>
       } @else {
-        <pre class="nje-preview">{{ store.text() }}</pre>
+        <ngx-json-table />
       }
+    }
+    @default {
+      <pre class="nje-preview">{{ store.text() }}</pre>
     }
   }
 </div>
@@ -126,3 +218,5 @@
     <span class="nje-status-selection">{{ selectionLabel() }}</span>
   }
 </div>
+
+<ngx-json-dialogs />

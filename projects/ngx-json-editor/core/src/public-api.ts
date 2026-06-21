@@ -18,3 +18,5 @@ export * from './lib/diff';
 export * from './lib/sort';
 export * from './lib/query';
 export * from './lib/schema';
+export * from './lib/search';
+export * from './lib/table';

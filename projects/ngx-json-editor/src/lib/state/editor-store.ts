@@ -9,6 +9,7 @@ import {
   RepairResult,
   SchemaValidator,
   ValidationError,
+  SearchMatch,
   SortOptions,
   applyPatch,
   coerceToType,
@@ -23,6 +24,7 @@ import {
   pathToPointer,
   pointerToPath,
   repairJson,
+  searchJson,
   sortJson,
 } from 'ngx-json-editor/core';
 import { EditorMode, JsonEditorContent, isTextContent } from '../models/editor-content';
@@ -63,6 +65,23 @@ export class EditorStore {
 
   readonly indentation = signal<number | 'tab'>(2);
   readonly readOnly = signal<boolean>(false);
+
+  // ── Search ──────────────────────────────────────────────────────────────
+  readonly searchQuery = signal<string>('');
+  readonly activeMatchIndex = signal<number>(0);
+  /** All matches for the current query (keys + values), in document order. */
+  readonly searchMatches = computed<SearchMatch[]>(() => {
+    const q = this.searchQuery();
+    const value = this.json();
+    return q && value !== undefined ? searchJson(value, q) : [];
+  });
+  /** The currently-focused match, or null. */
+  readonly activeMatch = computed<SearchMatch | null>(() => {
+    const matches = this.searchMatches();
+    return matches.length === 0
+      ? null
+      : (matches[this.activeMatchIndex() % matches.length] ?? null);
+  });
 
   private readonly schemaValidator = signal<SchemaValidator | null>(null);
   private readonly customValidator = signal<ValidatorFn | null>(null);
@@ -218,6 +237,58 @@ export class EditorStore {
     this.selectedPointers.set(new Set());
     this.selection.set(null);
     return result;
+  }
+
+  // ── Search ──────────────────────────────────────────────────────────────
+  /** Set the search query and focus the first match (selecting it). */
+  setSearch(query: string): void {
+    this.searchQuery.set(query);
+    this.activeMatchIndex.set(0);
+    this.focusActiveMatch();
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.activeMatchIndex.set(0);
+  }
+
+  /** Focus the next match (wraps), selecting and expanding ancestors to it. */
+  nextMatch(): void {
+    const n = this.searchMatches().length;
+    if (n === 0) return;
+    this.activeMatchIndex.set((this.activeMatchIndex() + 1) % n);
+    this.focusActiveMatch();
+  }
+
+  /** Focus the previous match (wraps). */
+  prevMatch(): void {
+    const n = this.searchMatches().length;
+    if (n === 0) return;
+    this.activeMatchIndex.set((this.activeMatchIndex() - 1 + n) % n);
+    this.focusActiveMatch();
+  }
+
+  /** Replace every occurrence of `find` with `replace` in the document text. */
+  replaceAllInText(find: string, replace: string): number {
+    if (find === '') return 0;
+    const text = this.text();
+    const count = text.split(find).length - 1;
+    if (count > 0) {
+      this.commit({ text: text.split(find).join(replace) });
+    }
+    return count;
+  }
+
+  private focusActiveMatch(): void {
+    const match = this.activeMatch();
+    if (!match) return;
+    this.setSelection(match.path);
+    // Expand ancestors so the match is visible in the tree.
+    const expanded = new Set(this.expanded());
+    for (let i = 1; i < match.path.length; i++) {
+      expanded.add(pathToPointer(match.path.slice(0, i)));
+    }
+    this.expanded.set(expanded);
   }
 
   toggleExpanded(path: JsonPath): void {

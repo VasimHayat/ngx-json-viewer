@@ -92,6 +92,34 @@
   }
 }
 
+.nje-searchbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px var(--nje-gap);
+  background: var(--nje-bg-subtle);
+  border-bottom: 1px solid var(--nje-border);
+  flex: 0 0 auto;
+}
+
+.nje-search-input {
+  font: inherit;
+  font-size: var(--nje-font-size);
+  padding: 3px 8px;
+  border: 1px solid var(--nje-border-strong);
+  border-radius: var(--nje-radius-sm);
+  background: var(--nje-bg-raised);
+  color: var(--nje-fg);
+  min-width: 140px;
+}
+
+.nje-search-count {
+  font-size: var(--nje-font-size-sm);
+  color: var(--nje-fg-muted);
+  min-width: 64px;
+  text-align: center;
+}
+
 .nje-body {
   flex: 1 1 auto;
   min-height: 0;

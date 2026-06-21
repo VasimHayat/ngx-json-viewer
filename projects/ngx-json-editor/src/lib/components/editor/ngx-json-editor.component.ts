@@ -8,12 +8,16 @@ import {
   input,
   model,
   output,
+  signal,
   untracked,
   viewChild,
 } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { TooltipModule } from 'primeng/tooltip';
+import { AutofocusDirective } from '../../directives/autofocus.directive';
 import { JsonPath, JsonValue, ValidationError, pathToDisplay } from 'ngx-json-editor/core';
+import { QUERY_ENGINE } from '../../adapters/tokens';
 import {
   DEFAULT_I18N,
   EditorI18n,
@@ -29,6 +33,8 @@ import { JsonSchema } from '../../models/schema';
 import { EditorStore } from '../../state/editor-store';
 import { TextModeComponent } from '../text/text-mode.component';
 import { TreeModeComponent } from '../tree/tree-mode.component';
+import { TableModeComponent } from '../table/table-mode.component';
+import { DialogsComponent } from '../dialogs/dialogs.component';
 
 /**
  * `<ngx-json-editor>` — the single primary component of the library.
@@ -40,7 +46,16 @@ import { TreeModeComponent } from '../tree/tree-mode.component';
  */
 @Component({
   selector: 'ngx-json-editor',
-  imports: [ButtonModule, TooltipModule, TextModeComponent, TreeModeComponent],
+  imports: [
+    FormsModule,
+    AutofocusDirective,
+    ButtonModule,
+    TooltipModule,
+    TextModeComponent,
+    TreeModeComponent,
+    TableModeComponent,
+    DialogsComponent,
+  ],
   providers: [EditorStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ngx-json-editor.component.html',
@@ -54,8 +69,15 @@ import { TreeModeComponent } from '../tree/tree-mode.component';
 export class NgxJsonEditorComponent {
   private readonly hostRef = inject(ElementRef<HTMLElement>);
   private readonly textMode = viewChild(TextModeComponent);
+  private readonly dialogs = viewChild(DialogsComponent);
+  private readonly queryEngine = inject(QUERY_ENGINE);
   /** The per-instance store (exposed to the template). */
   protected readonly store = inject(EditorStore);
+
+  /** Whether the find bar is open. */
+  readonly searchOpen = signal<boolean>(false);
+  /** Replacement text for text-mode search & replace. */
+  protected replaceText = '';
 
   // ── Two-way bindable content ──────────────────────────────────────────────
   readonly content = model<JsonEditorContent>({ json: null });
@@ -171,12 +193,58 @@ export class NgxJsonEditorComponent {
       }
     });
 
+    // Keep the dialogs' i18n in sync with the editor's merged strings.
+    effect(() => {
+      const dialogs = this.dialogs();
+      if (dialogs) {
+        dialogs.strings.set(this.strings());
+      }
+    });
+
     queueMicrotask(() => this.ready.emit());
   }
 
   // ── Toolbar handlers ──────────────────────────────────────────────────────
   setMode(next: EditorMode): void {
     this.store.setMode(next);
+  }
+
+  // ── Search ────────────────────────────────────────────────────────────────
+  toggleSearch(): void {
+    const open = !this.searchOpen();
+    this.searchOpen.set(open);
+    if (!open) {
+      this.store.clearSearch();
+    }
+  }
+
+  onSearchInput(value: string): void {
+    this.store.setSearch(value);
+  }
+
+  nextMatch(): void {
+    this.store.nextMatch();
+  }
+
+  prevMatch(): void {
+    this.store.prevMatch();
+  }
+
+  replaceAll(): void {
+    this.store.replaceAllInText(this.store.searchQuery(), this.replaceText);
+  }
+
+  // ── Dialogs ─────────────────────────────────────────────────────────────
+  openSort(): void {
+    this.dialogs()?.openSort();
+  }
+
+  openFilter(): void {
+    this.dialogs()?.openFilter();
+  }
+
+  openTransform(): void {
+    this.dialogs()?.openTransform();
   }
 
   // ── Imperative API (call via a template ref) ──────────────────────────────
@@ -229,9 +297,13 @@ export class NgxJsonEditorComponent {
     this.store.replaceDocument(c);
   }
 
-  transform(_query: string): JsonEditorContent {
-    // Implemented with the Transform dialog/engine in Phase 4.
-    return this.get();
+  transform(query: string): JsonEditorContent {
+    const json = this.store.json();
+    if (json === undefined) {
+      return this.get();
+    }
+    const result = this.queryEngine.query(json, query);
+    return result.ok ? { json: result.value } : this.get();
   }
 
   // ── Template helpers ────────────────────────────────────────────────────

@@ -222,4 +222,46 @@ describe('EditorStore', () => {
       expect(store.isSelected(['list', 1])).toBeFalse();
     });
   });
+
+  describe('search', () => {
+    beforeEach(() =>
+      store.replaceDocument({ json: { name: 'Ada', items: [{ tag: 'admin' }, { tag: 'dev' }] } }),
+    );
+
+    it('finds matches across keys and values and focuses the first', () => {
+      store.setSearch('ad');
+      expect(store.searchMatches().length).toBeGreaterThan(0);
+      expect(store.activeMatch()).not.toBeNull();
+      // The match is selected and its ancestors expanded.
+      expect(store.selection()).not.toBeNull();
+    });
+
+    it('navigates next/prev with wraparound', () => {
+      store.setSearch('tag');
+      const n = store.searchMatches().length;
+      expect(n).toBe(2);
+      expect(store.activeMatchIndex()).toBe(0);
+      store.nextMatch();
+      expect(store.activeMatchIndex()).toBe(1);
+      store.nextMatch();
+      expect(store.activeMatchIndex()).toBe(0); // wrapped
+      store.prevMatch();
+      expect(store.activeMatchIndex()).toBe(1);
+    });
+
+    it('clears search', () => {
+      store.setSearch('ad');
+      store.clearSearch();
+      expect(store.searchMatches()).toEqual([]);
+    });
+
+    it('replaces all occurrences in the document text', () => {
+      const count = store.replaceAllInText('Ada', 'Eve');
+      expect(count).toBe(1);
+      expect(store.json() as unknown).toEqual({
+        name: 'Eve',
+        items: [{ tag: 'admin' }, { tag: 'dev' }],
+      });
+    });
+  });
 });

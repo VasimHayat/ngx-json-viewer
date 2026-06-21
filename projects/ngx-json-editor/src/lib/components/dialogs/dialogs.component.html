@@ -1,0 +1,121 @@
+<!-- Sort -->
+<p-dialog
+  [header]="strings().sort"
+  [visible]="sortVisible()"
+  (visibleChange)="sortVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '24rem' }"
+>
+  <label class="nje-dlg-field">
+    <span>{{ strings().sortBy }}</span>
+    <select [(ngModel)]="sortBy">
+      <option value="key">{{ strings().sortKeys }}</option>
+      <option value="value">{{ strings().sortValues }}</option>
+    </select>
+  </label>
+  <label class="nje-dlg-field">
+    <span>{{ strings().sort }}</span>
+    <select [(ngModel)]="sortDirection">
+      <option value="asc">{{ strings().ascending }}</option>
+      <option value="desc">{{ strings().descending }}</option>
+    </select>
+  </label>
+  <label class="nje-dlg-check">
+    <input type="checkbox" [(ngModel)]="sortRecursive" />
+    {{ strings().recursive }}
+  </label>
+  <ng-template pTemplate="footer">
+    <p-button [label]="strings().cancel" [text]="true" (onClick)="sortVisible.set(false)" />
+    <p-button [label]="strings().apply" (onClick)="applySort()" />
+  </ng-template>
+</p-dialog>
+
+<!-- Filter -->
+<p-dialog
+  [header]="strings().filter"
+  [visible]="filterVisible()"
+  (visibleChange)="filterVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '30rem' }"
+>
+  <div class="nje-dlg-row">
+    <label class="nje-dlg-field">
+      <span>{{ strings().filterPath }}</span>
+      <input type="text" [(ngModel)]="filterField" placeholder="field" />
+    </label>
+    <label class="nje-dlg-field">
+      <span>{{ strings().filterOperator }}</span>
+      <select [(ngModel)]="filterOperator">
+        @for (op of operators; track op) {
+          <option [value]="op">{{ op }}</option>
+        }
+      </select>
+    </label>
+    <label class="nje-dlg-field">
+      <span>{{ strings().filterValue }}</span>
+      <input type="text" [(ngModel)]="filterValue" />
+    </label>
+  </div>
+  <div class="nje-dlg-preview-label">{{ strings().transformPreview }}</div>
+  <pre class="nje-dlg-preview">{{ filterPreview() }}</pre>
+  <ng-template pTemplate="footer">
+    <p-button [label]="strings().cancel" [text]="true" (onClick)="filterVisible.set(false)" />
+    <p-button [label]="strings().apply" (onClick)="applyFilter()" />
+  </ng-template>
+</p-dialog>
+
+<!-- Transform -->
+<p-dialog
+  [header]="strings().transform"
+  [visible]="transformVisible()"
+  (visibleChange)="transformVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: '46rem' }"
+>
+  <div class="nje-dlg-builder">
+    <label class="nje-dlg-field">
+      <span>{{ strings().filter }} (field / op / value)</span>
+      <div class="nje-dlg-row">
+        <input type="text" [(ngModel)]="tFilterField" placeholder="field" />
+        <select [(ngModel)]="tFilterOperator">
+          @for (op of operators; track op) {
+            <option [value]="op">{{ op }}</option>
+          }
+        </select>
+        <input type="text" [(ngModel)]="tFilterValue" placeholder="value" />
+      </div>
+    </label>
+    <div class="nje-dlg-row">
+      <label class="nje-dlg-field">
+        <span>{{ strings().sortBy }}</span>
+        <input type="text" [(ngModel)]="tSortField" placeholder="field" />
+      </label>
+      <label class="nje-dlg-field">
+        <span>{{ strings().sort }}</span>
+        <select [(ngModel)]="tSortDir">
+          <option value="asc">{{ strings().ascending }}</option>
+          <option value="desc">{{ strings().descending }}</option>
+        </select>
+      </label>
+      <label class="nje-dlg-field nje-dlg-grow">
+        <span>Project (comma-separated fields)</span>
+        <input type="text" [(ngModel)]="tProjection" placeholder="name, age" />
+      </label>
+    </div>
+    <p-button label="Build query" size="small" [text]="true" (onClick)="buildFromFields()" />
+  </div>
+
+  <label class="nje-dlg-field">
+    <span>{{ strings().transformQueryLabel }}</span>
+    <textarea class="nje-dlg-query" rows="2" [(ngModel)]="transformQuery"></textarea>
+  </label>
+
+  <div class="nje-dlg-preview-label">{{ strings().transformPreview }}</div>
+  <pre class="nje-dlg-preview nje-dlg-preview--lg">{{ transformPreview() }}</pre>
+
+  <ng-template pTemplate="footer">
+    <p-button [label]="strings().cancel" [text]="true" (onClick)="transformVisible.set(false)" />
+    <p-button [label]="strings().copy" [text]="true" (onClick)="copyTransform()" />
+    <p-button [label]="strings().apply" (onClick)="applyTransform()" />
+  </ng-template>
+</p-dialog>
