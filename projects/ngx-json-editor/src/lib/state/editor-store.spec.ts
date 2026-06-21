@@ -170,5 +170,56 @@ describe('EditorStore', () => {
       expect(store.isExpanded(['b'])).toBeTrue();
       expect(store.isExpanded(['list'])).toBeTrue();
     });
+
+    it('inserts siblings before and after', () => {
+      store.insertSibling(['list', 0], 'after', 'number');
+      expect((store.json() as { list: unknown[] }).list.length).toBe(3);
+      store.insertSibling(['a'], 'before', 'string');
+      expect(Object.keys(store.json() as object)[0]).toBe('newKey');
+    });
+
+    it('extracts a subtree as the new root', () => {
+      store.extractAt(['b']);
+      expect(store.json() as unknown).toEqual({ c: 2 });
+    });
+
+    it('sorts a container and the whole document', () => {
+      store.replaceDocument({ json: { c: 1, a: 2, b: 3 } });
+      store.sortDocument({ by: 'key' });
+      expect(Object.keys(store.json() as object)).toEqual(['a', 'b', 'c']);
+    });
+
+    it('moves a node (array reorder and reparent)', () => {
+      store.replaceDocument({ json: { src: [1, 2, 3], dst: [] } });
+      store.moveNode(['src', 0], ['dst'], '-');
+      expect(store.json() as unknown).toEqual({ src: [2, 3], dst: [1] });
+    });
+
+    it('refuses to move a node into its own subtree', () => {
+      store.replaceDocument({ json: { a: { b: 1 } } });
+      expect(store.moveNode(['a'], ['a', 'b'], 'x')).not.toBeNull();
+    });
+  });
+
+  describe('multi-selection', () => {
+    beforeEach(() => store.replaceDocument({ json: { a: 1, list: [10, 11, 12, 13] } }));
+
+    it('single, toggle, and range selection', () => {
+      store.setSelection(['a']);
+      expect(store.isSelected(['a'])).toBeTrue();
+      store.toggleSelection(['list']);
+      expect(store.isSelected(['a'])).toBeTrue();
+      expect(store.isSelected(['list'])).toBeTrue();
+      store.toggleSelection(['a']);
+      expect(store.isSelected(['a'])).toBeFalse();
+    });
+
+    it('bulk-removes selected array items in an index-safe order', () => {
+      // Select indices 1 and 3 (11 and 13); removing index 3 first keeps 1 valid.
+      store.selectPointers(['/list/1', '/list/3']);
+      store.removeSelected();
+      expect((store.json() as { list: number[] }).list).toEqual([10, 12]);
+      expect(store.isSelected(['list', 1])).toBeFalse();
+    });
   });
 });

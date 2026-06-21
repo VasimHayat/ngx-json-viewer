@@ -19,12 +19,12 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | Feature | Status | Implementation | Tests |
 | --- | --- | --- | --- |
 | Inline key/value edit | ✅ | tree component + `EditorStore.updateValueAt`/`renameKeyAt` | `editor-store.spec.ts` |
-| Type-aware value editors | 🟡 | string/number/bool/null inline; object/array via type change | `editor-store.spec.ts` |
-| Change value type | ✅ | `EditorStore.changeTypeAt` + `core/coerceToType` (tree dropdown via menu — Phase 3b) | `value-type.spec.ts`, `editor-store.spec.ts` |
-| Context menu actions | ⬜ | store methods ready (remove/duplicate/append); menu UI Phase 3b | `editor-store.spec.ts` |
-| Drag-and-drop | ⬜ | (Phase 3b) | |
-| Multi-select + bulk | ⬜ | (Phase 3b) | |
-| Color/link value renderers | ⬜ | `models/config.ts` `ValueRenderer` (Phase 3b) | |
+| Type-aware value editors | ✅ | inline string/number/bool/null + "Convert to" menu | `editor-store.spec.ts` |
+| Change value type | ✅ | context-menu "Convert to" → `EditorStore.changeTypeAt` | `value-type.spec.ts`, `editor-store.spec.ts` |
+| Context menu actions | ✅ | PrimeNG ContextMenu: convert / insert / append / duplicate / sort / extract / copy / copy-path / cut / paste / remove | `editor-store.spec.ts` |
+| Drag-and-drop | ✅ | HTML5 drag, before/after/inside drop indicators, reparent guard → `moveNode` | `editor-store.spec.ts` (moveNode) |
+| Multi-select + bulk | ✅ | ctrl/shift-click, range, Delete → `removeSelected` (index-safe) | `editor-store.spec.ts` |
+| Color/link value renderers | 🟡 | color swatch + clickable link (image/custom renderer Phase 6) | tree component |
 | Expand/collapse + persistence | ✅ | `EditorStore.expanded` (pointer-keyed, preserved across modes) + expand/collapse-all | `tree-model.spec.ts`, `editor-store.spec.ts` |
 | Inline validation markers | ✅ | tree row error markers (parse + schema, incl. ancestors) | tree component |
 

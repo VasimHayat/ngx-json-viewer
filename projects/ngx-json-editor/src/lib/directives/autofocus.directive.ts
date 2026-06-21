@@ -1,4 +1,11 @@
-import { AfterViewInit, Directive, ElementRef, booleanAttribute, inject, input } from '@angular/core';
+import {
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  booleanAttribute,
+  inject,
+  input,
+} from '@angular/core';
 
 /**
  * Focuses (and optionally selects) the host element after it renders. Used for

@@ -9,6 +9,7 @@ import {
   RepairResult,
   SchemaValidator,
   ValidationError,
+  SortOptions,
   applyPatch,
   coerceToType,
   createSchemaValidator,
@@ -16,10 +17,13 @@ import {
   getAtPath,
   isJsonArray,
   isJsonObject,
+  isPathPrefix,
   ok,
   parseJson,
   pathToPointer,
+  pointerToPath,
   repairJson,
+  sortJson,
 } from 'ngx-json-editor/core';
 import { EditorMode, JsonEditorContent, isTextContent } from '../models/editor-content';
 import { JsonSchema, ValidatorFn } from '../models/schema';
@@ -50,7 +54,10 @@ export class EditorStore {
   readonly content = this._content.asReadonly();
 
   readonly mode = signal<EditorMode>('tree');
+  /** The active (primary) selection — drives the status bar and range anchor. */
   readonly selection = signal<JsonPath | null>(null);
+  /** All selected node pointers (multi-select via ctrl/shift). */
+  readonly selectedPointers = signal<ReadonlySet<string>>(new Set<string>());
   /** Expanded container nodes, keyed by JSON Pointer; preserved across modes. */
   readonly expanded = signal<ReadonlySet<string>>(new Set<string>());
 
@@ -171,6 +178,46 @@ export class EditorStore {
 
   setSelection(path: JsonPath | null): void {
     this.selection.set(path);
+    this.selectedPointers.set(path ? new Set([pathToPointer(path)]) : new Set());
+  }
+
+  /** Add or remove a path from the multi-selection (ctrl/cmd-click). */
+  toggleSelection(path: JsonPath): void {
+    const key = pathToPointer(path);
+    const next = new Set(this.selectedPointers());
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    this.selectedPointers.set(next);
+    this.selection.set(path);
+  }
+
+  /** Replace the multi-selection with an explicit set of pointers. */
+  selectPointers(pointers: Iterable<string>, active: JsonPath | null = null): void {
+    this.selectedPointers.set(new Set(pointers));
+    this.selection.set(active);
+  }
+
+  isSelected(path: JsonPath): boolean {
+    return this.selectedPointers().has(pathToPointer(path));
+  }
+
+  /** Remove every selected node (bulk action), ordered so removals stay valid. */
+  removeSelected(): ValidationError | null {
+    const paths = [...this.selectedPointers()].filter((p) => p !== '').map((p) => pointerToPath(p));
+    if (paths.length === 0) {
+      return null;
+    }
+    // Remove deepest first; among array siblings, highest index first — so
+    // earlier removals never shift the indices of later ones.
+    paths.sort(compareForRemoval);
+    const ops: JsonPatch = paths.map((p) => ({ op: 'remove' as const, path: pathToPointer(p) }));
+    const result = this.applyJsonPatch(ops);
+    this.selectedPointers.set(new Set());
+    this.selection.set(null);
+    return result;
   }
 
   toggleExpanded(path: JsonPath): void {
@@ -300,6 +347,101 @@ export class EditorStore {
     return { path, message: 'Parent is not a container', severity: 'error', source: 'edit' };
   }
 
+  /** Insert a new sibling before/after the node at `path`. */
+  insertSibling(
+    path: JsonPath,
+    position: 'before' | 'after',
+    type: JsonValueType,
+  ): ValidationError | null {
+    if (path.length === 0) {
+      return {
+        path,
+        message: 'Cannot insert a sibling of the root',
+        severity: 'error',
+        source: 'edit',
+      };
+    }
+    const parentPath = path.slice(0, -1);
+    const lastKey = path[path.length - 1];
+    const parent = getAtPath(this.json() ?? null, parentPath) ?? null;
+    const value = coerceToType(null, type);
+    if (isJsonArray(parent)) {
+      const idx = Number(lastKey) + (position === 'after' ? 1 : 0);
+      return this.applyJsonPatch([{ op: 'add', path: pathToPointer([...parentPath, idx]), value }]);
+    }
+    if (isJsonObject(parent)) {
+      // Objects: rebuild preserving order, inserting a fresh key adjacent.
+      const name = uniqueKey(parent, 'newKey');
+      const rebuilt: Record<string, JsonValue> = {};
+      for (const [k, v] of Object.entries(parent)) {
+        if (k === lastKey && position === 'before') {
+          rebuilt[name] = value;
+        }
+        rebuilt[k] = v;
+        if (k === lastKey && position === 'after') {
+          rebuilt[name] = value;
+        }
+      }
+      return this.applyJsonPatch([
+        { op: 'replace', path: pathToPointer(parentPath), value: rebuilt },
+      ]);
+    }
+    return { path, message: 'Parent is not a container', severity: 'error', source: 'edit' };
+  }
+
+  /** Extract the subtree at `path`, making it the new document root. */
+  extractAt(path: JsonPath): ValidationError | null {
+    const value = getAtPath(this.json() ?? null, path);
+    if (value === undefined) {
+      return { path, message: 'Nothing to extract', severity: 'error', source: 'edit' };
+    }
+    this.commit({ json: value });
+    return null;
+  }
+
+  /** Sort the children of the container at `path` (default: by key, ascending). */
+  sortAt(path: JsonPath, options: SortOptions = {}): ValidationError | null {
+    const target = getAtPath(this.json() ?? null, path);
+    if (target === undefined || !(isJsonObject(target) || isJsonArray(target))) {
+      return { path, message: 'Target is not sortable', severity: 'error', source: 'edit' };
+    }
+    return this.updateValueAt(path, sortJson(target, options));
+  }
+
+  /** Sort the whole document (used by the Sort dialog). */
+  sortDocument(options: SortOptions): ValidationError | null {
+    const value = this.json();
+    if (value === undefined) {
+      return { path: [], message: 'Cannot sort invalid JSON', severity: 'error', source: 'edit' };
+    }
+    return this.updateValueAt([], sortJson(value, options));
+  }
+
+  /**
+   * Move the node at `from` to be a child of `toParent` at `index` (arrays) or
+   * under `key` (objects). Reorders and reparents via an RFC 6902 move.
+   */
+  moveNode(
+    from: JsonPath,
+    toParent: JsonPath,
+    indexOrKey: number | string,
+  ): ValidationError | null {
+    if (from.length === 0) {
+      return { path: from, message: 'Cannot move the root', severity: 'error', source: 'edit' };
+    }
+    // Disallow moving a node into its own descendant.
+    if (isPathPrefix(from, toParent)) {
+      return {
+        path: from,
+        message: 'Cannot move a node into itself',
+        severity: 'error',
+        source: 'edit',
+      };
+    }
+    const destination = pathToPointer([...toParent, indexOrKey]);
+    return this.applyJsonPatch([{ op: 'move', from: pathToPointer(from), path: destination }]);
+  }
+
   // ── Edits ─────────────────────────────────────────────────────────────────
   /** Set raw text (text mode). Records an undoable history entry. */
   setText(text: string): void {
@@ -415,6 +557,27 @@ export class EditorStore {
 function stringify(value: JsonValue, indentation: number | 'tab'): string {
   const indent = indentation === 'tab' ? '\t' : indentation;
   return JSON.stringify(value, null, indent);
+}
+
+/**
+ * Order two paths for safe sequential removal: process the one whose removal
+ * cannot invalidate the other first. Deeper paths win; among siblings, a larger
+ * (numeric) final segment wins; otherwise reverse lexicographic.
+ */
+function compareForRemoval(a: JsonPath, b: JsonPath): number {
+  const min = Math.min(a.length, b.length);
+  for (let i = 0; i < min; i++) {
+    const sa = String(a[i]);
+    const sb = String(b[i]);
+    if (sa === sb) {
+      continue;
+    }
+    if (/^\d+$/.test(sa) && /^\d+$/.test(sb)) {
+      return Number(sb) - Number(sa); // higher index first
+    }
+    return sb.localeCompare(sa);
+  }
+  return b.length - a.length; // deeper first
 }
 
 /** Pick a key not already present in `obj`, suffixing with a counter if needed. */

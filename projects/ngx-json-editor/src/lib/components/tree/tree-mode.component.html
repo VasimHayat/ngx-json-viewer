@@ -5,20 +5,35 @@
   aria-label="JSON tree"
 >
   <div
-    *cdkVirtualFor="let row of rows(); trackBy: trackRow"
+    *cdkVirtualFor="let row of rows(); let i = index; trackBy: trackRow"
     class="nje-tree-row"
     role="treeitem"
     tabindex="0"
+    [draggable]="!store.readOnly() && row.key !== null"
     [class.nje-tree-row--selected]="isSelected(row)"
-    [class.nje-tree-row--error]="hasError(row)"
+    [class.nje-tree-row--error]="hasErrorAt(row)"
+    [class.nje-tree-row--dragging]="dragging() === row.pointer"
+    [class.nje-drop-before]="
+      dropTarget()?.pointer === row.pointer && dropTarget()?.position === 'before'
+    "
+    [class.nje-drop-after]="
+      dropTarget()?.pointer === row.pointer && dropTarget()?.position === 'after'
+    "
+    [class.nje-drop-inside]="
+      dropTarget()?.pointer === row.pointer && dropTarget()?.position === 'inside'
+    "
     [attr.aria-level]="row.depth + 1"
     [attr.aria-expanded]="row.expandable ? row.expanded : null"
     [attr.aria-selected]="isSelected(row)"
     [style.padding-left.px]="indentPx(row.depth)"
-    (click)="select(row)"
+    (click)="onRowClick(row, i, $event)"
     (keydown)="onRowKeydown(row, $event)"
+    (contextmenu)="onContextMenu(row, $event)"
+    (dragstart)="onDragStart(row, $event)"
+    (dragover)="onDragOver(row, $event)"
+    (drop)="onDrop(row, $event)"
+    (dragend)="onDragEnd()"
   >
-    <!-- Expand/collapse twisty -->
     @if (row.expandable) {
       <button
         type="button"
@@ -32,7 +47,6 @@
       <span class="nje-twisty"></span>
     }
 
-    <!-- Key -->
     @if (row.key !== null) {
       @if (isEditing(row, 'key')) {
         <input
@@ -54,7 +68,6 @@
       <span class="nje-colon">:</span>
     }
 
-    <!-- Value -->
     @if (row.type === 'object' || row.type === 'array') {
       <span class="nje-summary nje-type-{{ row.type }}">{{ summary(row) }}</span>
     } @else if (isEditing(row, 'value')) {
@@ -74,7 +87,19 @@
       >
         {{ displayValue(row) }}
       </button>
+    } @else if (isLink(row)) {
+      <a
+        class="nje-value nje-type-string nje-value--link"
+        [href]="displayValue(row)"
+        target="_blank"
+        rel="noopener noreferrer"
+        (click)="$event.stopPropagation()"
+        >"{{ displayValue(row) }}"</a
+      >
     } @else {
+      @if (isColor(row)) {
+        <span class="nje-swatch" [style.background]="displayValue(row)" aria-hidden="true"></span>
+      }
       <span
         class="nje-value nje-type-{{ row.type }}"
         [class.nje-value--editable]="isEditableValue(row)"
@@ -83,8 +108,10 @@
       >
     }
 
-    @if (hasError(row)) {
+    @if (hasErrorAt(row)) {
       <span class="nje-error-marker" aria-hidden="true">!</span>
     }
   </div>
 </cdk-virtual-scroll-viewport>
+
+<p-contextMenu #cm [model]="menuModel()" appendTo="body" />

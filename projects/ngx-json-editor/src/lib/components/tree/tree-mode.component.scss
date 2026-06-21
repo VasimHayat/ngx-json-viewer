@@ -33,6 +33,41 @@
   &--error {
     box-shadow: inset 2px 0 0 var(--nje-error);
   }
+
+  &--dragging {
+    opacity: 0.45;
+  }
+
+  // Drop indicators for drag-and-drop.
+  &.nje-drop-before {
+    box-shadow: inset 0 2px 0 var(--nje-accent);
+  }
+
+  &.nje-drop-after {
+    box-shadow: inset 0 -2px 0 var(--nje-accent);
+  }
+
+  &.nje-drop-inside {
+    background: var(--nje-bg-selected-muted);
+    outline: 1px dashed var(--nje-accent);
+    outline-offset: -1px;
+  }
+}
+
+.nje-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--nje-border-strong);
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.nje-value--link {
+  color: var(--nje-accent);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .nje-twisty {

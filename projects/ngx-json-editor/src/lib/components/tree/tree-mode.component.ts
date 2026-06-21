@@ -1,48 +1,62 @@
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MenuItem } from 'primeng/api';
+import { ContextMenu, ContextMenuModule } from 'primeng/contextmenu';
 import {
   JsonPath,
   JsonValue,
+  JsonValueType,
   ValidationError,
+  cloneJson,
   isPathPrefix,
+  pathToDisplay,
   pathToPointer,
 } from 'ngx-json-editor/core';
 import { EditorStore } from '../../state/editor-store';
 import { TreeRow, containerSummary, flattenTree } from '../../state/tree-model';
 import { AutofocusDirective } from '../../directives/autofocus.directive';
+import { CLIPBOARD_ADAPTER } from '../../adapters/tokens';
 
 interface EditTarget {
   readonly pointer: string;
   readonly kind: 'key' | 'value';
 }
 
+interface DropTarget {
+  readonly pointer: string;
+  readonly position: 'before' | 'after' | 'inside';
+}
+
 /**
- * Tree mode: a virtualized, hierarchical view of the document (CDK virtual
- * scroll). Expand/collapse, selection, inline key/value editing, and per-error
- * markers. Type changes, context menu, drag-drop, and multi-select build on
- * this foundation.
+ * Tree mode: a virtualized, hierarchical view of the document with inline
+ * editing, multi-select, a per-node context menu, drag-and-drop reordering /
+ * reparenting, and color/link value renderers.
  */
 @Component({
   selector: 'ngx-json-tree',
-  imports: [ScrollingModule, FormsModule, AutofocusDirective],
+  imports: [ScrollingModule, FormsModule, ContextMenuModule, AutofocusDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './tree-mode.component.html',
   styleUrl: './tree-mode.component.scss',
 })
 export class TreeModeComponent {
   protected readonly store = inject(EditorStore);
+  private readonly clipboard = inject(CLIPBOARD_ADAPTER);
+  private readonly menu = viewChild<ContextMenu>('cm');
 
-  /** Visible rows: a flattened projection of json + expansion state. */
   protected readonly rows = computed<TreeRow[]>(() => {
     const value = this.store.json();
-    if (value === undefined) {
-      return [];
-    }
-    return flattenTree(value, this.store.expanded());
+    return value === undefined ? [] : flattenTree(value, this.store.expanded());
   });
 
-  /** Errors indexed by pointer, for inline markers. */
   protected readonly errorsByPointer = computed<ReadonlyMap<string, ValidationError[]>>(() => {
     const map = new Map<string, ValidationError[]>();
     for (const e of this.store.errors()) {
@@ -56,24 +70,55 @@ export class TreeModeComponent {
 
   protected readonly editing = signal<EditTarget | null>(null);
   protected draft = '';
-
   protected readonly rowHeight = 24;
-
   protected readonly summary = containerSummary;
 
-  // ── Interaction ─────────────────────────────────────────────────────────
-  protected toggle(row: TreeRow, event: Event): void {
-    event.stopPropagation();
-    if (row.expandable) {
-      this.store.toggleExpanded(row.path);
+  /** Node cut/copied within the editor (paste source independent of OS clipboard). */
+  private readonly internalClipboard = signal<JsonValue | null>(null);
+  private lastClickIndex = -1;
+
+  protected readonly menuModel = signal<MenuItem[]>([]);
+  private menuRow: TreeRow | null = null;
+
+  // Drag-and-drop state.
+  protected readonly dragging = signal<string | null>(null);
+  protected readonly dropTarget = signal<DropTarget | null>(null);
+
+  // ── Selection (single / multi / range) ─────────────────────────────────────
+  protected onRowClick(row: TreeRow, index: number, event: MouseEvent): void {
+    if (event.shiftKey && this.lastClickIndex >= 0) {
+      const [lo, hi] = [Math.min(this.lastClickIndex, index), Math.max(this.lastClickIndex, index)];
+      const rows = this.rows();
+      this.store.selectPointers(
+        rows.slice(lo, hi + 1).map((r) => r.pointer),
+        row.path,
+      );
+    } else if (event.ctrlKey || event.metaKey) {
+      this.store.toggleSelection(row.path);
+      this.lastClickIndex = index;
+    } else {
+      this.store.setSelection(row.path);
+      this.lastClickIndex = index;
     }
   }
 
-  protected select(row: TreeRow): void {
-    this.store.setSelection(row.path);
+  protected isSelected(row: TreeRow): boolean {
+    return this.store.isSelected(row.path);
   }
 
-  /** Basic keyboard navigation on a row (full roving tabindex lands in Phase 6). */
+  /** True if this node, or (for containers) any descendant, has a validation error. */
+  protected hasErrorAt(row: TreeRow): boolean {
+    if (this.errorsByPointer().has(row.pointer)) {
+      return true;
+    }
+    for (const e of this.store.errors()) {
+      if (e.path.length > row.path.length && isPathPrefix(row.path, e.path)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   protected onRowKeydown(row: TreeRow, event: KeyboardEvent): void {
     switch (event.key) {
       case 'Enter':
@@ -81,8 +126,6 @@ export class TreeModeComponent {
         event.preventDefault();
         if (row.expandable) {
           this.store.toggleExpanded(row.path);
-        } else {
-          this.select(row);
         }
         break;
       case 'ArrowRight':
@@ -97,52 +140,30 @@ export class TreeModeComponent {
           this.store.toggleExpanded(row.path);
         }
         break;
+      case 'Delete':
+      case 'Backspace':
+        if (!this.store.readOnly()) {
+          event.preventDefault();
+          this.store.removeSelected();
+        }
+        break;
       default:
         break;
     }
   }
 
-  protected isSelected(row: TreeRow): boolean {
-    const sel = this.store.selection();
-    return !!sel && pathToPointer(sel) === row.pointer;
+  // ── Expand/collapse ─────────────────────────────────────────────────────
+  protected toggle(row: TreeRow, event: Event): void {
+    event.stopPropagation();
+    if (row.expandable) {
+      this.store.toggleExpanded(row.path);
+    }
   }
 
-  protected hasError(row: TreeRow): boolean {
-    const direct = this.errorsByPointer().has(row.pointer);
-    if (direct) {
-      return true;
-    }
-    // A container shows an error marker if a descendant has one.
-    for (const e of this.store.errors()) {
-      if (isPathPrefix(row.path, e.path) && e.path.length > row.path.length) {
-        return true;
-      }
-    }
-    return false;
-  }
-
+  // ── Inline editing ──────────────────────────────────────────────────────
   protected isEditing(row: TreeRow, kind: 'key' | 'value'): boolean {
     const e = this.editing();
     return !!e && e.pointer === row.pointer && e.kind === kind;
-  }
-
-  // ── Value display ─────────────────────────────────────────────────────────
-  protected displayValue(row: TreeRow): string {
-    switch (row.type) {
-      case 'string':
-        return row.value as string;
-      case 'number':
-      case 'boolean':
-        return String(row.value);
-      case 'null':
-        return 'null';
-      default:
-        return '';
-    }
-  }
-
-  protected keyLabel(row: TreeRow): string {
-    return row.key === null ? '' : String(row.key);
   }
 
   protected isEditableKey(row: TreeRow): boolean {
@@ -156,42 +177,33 @@ export class TreeModeComponent {
     );
   }
 
-  // ── Editing ─────────────────────────────────────────────────────────────
   protected beginEditValue(row: TreeRow, event: Event): void {
-    if (!this.isEditableValue(row)) {
-      return;
-    }
+    if (!this.isEditableValue(row)) return;
     event.stopPropagation();
     this.draft = row.type === 'null' ? '' : this.displayValue(row);
     this.editing.set({ pointer: row.pointer, kind: 'value' });
   }
 
   protected beginEditKey(row: TreeRow, event: Event): void {
-    if (!this.isEditableKey(row)) {
-      return;
-    }
+    if (!this.isEditableKey(row)) return;
     event.stopPropagation();
     this.draft = this.keyLabel(row);
     this.editing.set({ pointer: row.pointer, kind: 'key' });
   }
 
   protected toggleBoolean(row: TreeRow, event: Event): void {
-    if (row.type !== 'boolean' || this.store.readOnly()) {
-      return;
-    }
+    if (row.type !== 'boolean' || this.store.readOnly()) return;
     event.stopPropagation();
     this.store.updateValueAt(row.path, !(row.value as boolean));
   }
 
   protected commit(row: TreeRow): void {
     const target = this.editing();
-    if (!target) {
-      return;
-    }
+    if (!target) return;
     if (target.kind === 'value') {
       this.store.updateValueAt(row.path, this.parseDraft(row));
     } else if (typeof row.key === 'string') {
-      this.store.renameKeyAt(parentOf(row.path), row.key, this.draft);
+      this.store.renameKeyAt(row.path.slice(0, -1), row.key, this.draft);
     }
     this.editing.set(null);
   }
@@ -215,8 +227,200 @@ export class TreeModeComponent {
       const n = Number(this.draft);
       return Number.isFinite(n) ? n : (row.value as number);
     }
-    // string and (former) null become strings; explicit type change is separate.
     return this.draft;
+  }
+
+  // ── Context menu ────────────────────────────────────────────────────────
+  protected onContextMenu(row: TreeRow, event: MouseEvent): void {
+    if (this.store.readOnly()) return;
+    event.preventDefault();
+    if (!this.isSelected(row)) {
+      this.store.setSelection(row.path);
+    }
+    this.menuRow = row;
+    this.menuModel.set(this.buildMenu(row));
+    this.menu()?.show(event);
+  }
+
+  private buildMenu(row: TreeRow): MenuItem[] {
+    const isRoot = row.path.length === 0;
+    const isContainer = row.type === 'object' || row.type === 'array';
+    const types: JsonValueType[] = ['string', 'number', 'boolean', 'null', 'object', 'array'];
+    return [
+      {
+        label: 'Convert to',
+        items: types
+          .filter((t) => t !== row.type)
+          .map((t) => ({
+            label: capitalize(t),
+            command: () => this.store.changeTypeAt(row.path, t),
+          })),
+      },
+      { separator: true },
+      {
+        label: 'Insert before',
+        disabled: isRoot,
+        command: () => this.store.insertSibling(row.path, 'before', 'string'),
+      },
+      {
+        label: 'Insert after',
+        disabled: isRoot,
+        command: () => this.store.insertSibling(row.path, 'after', 'string'),
+      },
+      {
+        label: 'Append',
+        disabled: !isContainer,
+        command: () => this.store.appendChild(row.path, 'string'),
+      },
+      { label: 'Duplicate', disabled: isRoot, command: () => this.store.duplicateAt(row.path) },
+      { separator: true },
+      { label: 'Sort', disabled: !isContainer, command: () => this.store.sortAt(row.path) },
+      { label: 'Extract', disabled: isRoot, command: () => this.store.extractAt(row.path) },
+      { separator: true },
+      { label: 'Copy', command: () => this.copy(row) },
+      { label: 'Copy path', command: () => this.copyPath(row) },
+      { label: 'Cut', disabled: isRoot, command: () => this.cut(row) },
+      {
+        label: 'Paste',
+        disabled: !isContainer || this.internalClipboard() === null,
+        command: () => this.paste(row),
+      },
+      { separator: true },
+      { label: 'Remove', disabled: isRoot, command: () => this.store.removeAt(row.path) },
+    ];
+  }
+
+  private copy(row: TreeRow): void {
+    this.internalClipboard.set(cloneJson(row.value));
+    void this.clipboard.writeText(JSON.stringify(row.value, null, 2));
+  }
+
+  private copyPath(row: TreeRow): void {
+    void this.clipboard.writeText(pathToDisplay(row.path));
+  }
+
+  private cut(row: TreeRow): void {
+    this.copy(row);
+    this.store.removeAt(row.path);
+  }
+
+  private paste(row: TreeRow): void {
+    const value = this.internalClipboard();
+    if (value === null) return;
+    if (row.type === 'array') {
+      this.store.applyJsonPatch([{ op: 'add', path: `${row.pointer}/-`, value: cloneJson(value) }]);
+    } else if (row.type === 'object') {
+      this.store.appendChild(row.path, 'string', 'pasted');
+      // Replace the freshly-added placeholder with the pasted value.
+      this.store.updateValueAt([...row.path, 'pasted'], cloneJson(value));
+    }
+  }
+
+  // ── Drag and drop ─────────────────────────────────────────────────────────
+  protected onDragStart(row: TreeRow, event: DragEvent): void {
+    if (this.store.readOnly() || row.path.length === 0) {
+      event.preventDefault();
+      return;
+    }
+    this.dragging.set(row.pointer);
+    event.dataTransfer?.setData('text/plain', row.pointer);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  protected onDragOver(row: TreeRow, event: DragEvent): void {
+    const src = this.dragging();
+    if (!src || src === row.pointer) return;
+    // Disallow dropping a node into its own subtree.
+    if (isPathPrefix(pointerToPathSafe(src), row.path)) return;
+    event.preventDefault();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const offset = event.clientY - rect.top;
+    let position: DropTarget['position'];
+    if (row.type === 'object' || row.type === 'array') {
+      position =
+        offset < rect.height * 0.25 ? 'before' : offset > rect.height * 0.75 ? 'after' : 'inside';
+    } else {
+      position = offset < rect.height / 2 ? 'before' : 'after';
+    }
+    this.dropTarget.set({ pointer: row.pointer, position });
+  }
+
+  protected onDrop(row: TreeRow, event: DragEvent): void {
+    event.preventDefault();
+    const target = this.dropTarget();
+    const src = this.dragging();
+    this.dragging.set(null);
+    this.dropTarget.set(null);
+    if (!src || !target) return;
+
+    const fromPath = pointerToPathResolved(this.store.json(), src);
+    if (!fromPath) return;
+
+    if (target.position === 'inside') {
+      const destIndexOrKey = row.type === 'array' ? '-' : uniqueChildKey(row, fromPath);
+      this.store.moveNode(fromPath, row.path, destIndexOrKey);
+      return;
+    }
+    // before/after a sibling: compute the destination parent + index/key.
+    const parentPath = row.path.slice(0, -1);
+    const lastKey = row.path[row.path.length - 1];
+    if (typeof lastKey === 'number') {
+      let index = lastKey + (target.position === 'after' ? 1 : 0);
+      // If moving down within the same array, the source removal shifts indices.
+      const fromParent = fromPath.slice(0, -1);
+      if (pathToPointer(fromParent) === pathToPointer(parentPath)) {
+        const fromIndex = Number(fromPath[fromPath.length - 1]);
+        if (fromIndex < index) {
+          index -= 1;
+        }
+      }
+      this.store.moveNode(fromPath, parentPath, index);
+    } else {
+      this.store.moveNode(fromPath, parentPath, String(lastKey));
+    }
+  }
+
+  protected onDragEnd(): void {
+    this.dragging.set(null);
+    this.dropTarget.set(null);
+  }
+
+  protected dropClass(row: TreeRow): string {
+    const t = this.dropTarget();
+    if (!t || t.pointer !== row.pointer) return '';
+    return `nje-drop-${t.position}`;
+  }
+
+  // ── Value rendering helpers ────────────────────────────────────────────────
+  protected displayValue(row: TreeRow): string {
+    switch (row.type) {
+      case 'string':
+        return row.value as string;
+      case 'number':
+      case 'boolean':
+        return String(row.value);
+      case 'null':
+        return 'null';
+      default:
+        return '';
+    }
+  }
+
+  protected keyLabel(row: TreeRow): string {
+    return row.key === null ? '' : String(row.key);
+  }
+
+  protected isColor(row: TreeRow): boolean {
+    return (
+      row.type === 'string' &&
+      /^#([0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(row.value as string)
+    );
+  }
+
+  protected isLink(row: TreeRow): boolean {
+    return row.type === 'string' && /^https?:\/\/\S+$/i.test(row.value as string);
   }
 
   protected indentPx(depth: number): number {
@@ -228,6 +432,22 @@ export class TreeModeComponent {
   }
 }
 
-function parentOf(path: JsonPath): JsonPath {
-  return path.slice(0, -1);
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function pointerToPathSafe(pointer: string): JsonPath {
+  return pointer === '' ? [] : pointer.slice(1).split('/');
+}
+
+/** Resolve a pointer to a path whose numeric segments are real numbers. */
+function pointerToPathResolved(doc: JsonValue | undefined, pointer: string): JsonPath | null {
+  if (pointer === '') return [];
+  const tokens = pointer.slice(1).split('/');
+  return tokens.map((t) => (/^\d+$/.test(t) ? Number(t) : t));
+}
+
+function uniqueChildKey(container: TreeRow, fromPath: JsonPath): string {
+  const movedKey = fromPath[fromPath.length - 1];
+  return typeof movedKey === 'string' ? movedKey : 'item';
 }
