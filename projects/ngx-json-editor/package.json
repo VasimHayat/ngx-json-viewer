@@ -17,7 +17,11 @@
   "author": "ngx-json-editor contributors",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ngx-json-editor/ngx-json-editor"
+    "url": "git+https://github.com/VasimHayat/ngx-json-viewer.git"
+  },
+  "homepage": "https://github.com/VasimHayat/ngx-json-viewer#readme",
+  "bugs": {
+    "url": "https://github.com/VasimHayat/ngx-json-viewer/issues"
   },
   "sideEffects": false,
   "peerDependencies": {
