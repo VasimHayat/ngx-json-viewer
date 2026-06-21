@@ -5,11 +5,11 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "ngx-json-editor": ["projects/ngx-json-editor/src/public-api.ts"],
-      "ngx-json-editor/core": ["projects/ngx-json-editor/core/src/public-api.ts"],
-      "ngx-json-editor/transform": ["projects/ngx-json-editor/transform/src/public-api.ts"],
-      "ngx-json-editor/compare": ["projects/ngx-json-editor/compare/src/public-api.ts"],
-      "ngx-json-editor/table": ["projects/ngx-json-editor/table/src/public-api.ts"]
+      "@vasimhayat007/ngx-json-editor": ["projects/ngx-json-editor/src/public-api.ts"],
+      "@vasimhayat007/ngx-json-editor/core": ["projects/ngx-json-editor/core/src/public-api.ts"],
+      "@vasimhayat007/ngx-json-editor/transform": ["projects/ngx-json-editor/transform/src/public-api.ts"],
+      "@vasimhayat007/ngx-json-editor/compare": ["projects/ngx-json-editor/compare/src/public-api.ts"],
+      "@vasimhayat007/ngx-json-editor/table": ["projects/ngx-json-editor/table/src/public-api.ts"]
     },
     "outDir": "./dist/out-tsc",
     "strict": true,

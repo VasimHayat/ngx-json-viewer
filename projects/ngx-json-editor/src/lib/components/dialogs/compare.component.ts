@@ -10,7 +10,7 @@ import {
   diffStructural,
   parseJson,
   summarizeDiff,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 
 /** A flattened diff node for rendering. */
 interface DiffRow {

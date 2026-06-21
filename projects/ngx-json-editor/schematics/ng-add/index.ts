@@ -27,12 +27,12 @@ ngx-json-editor installed.
 
 2) Use the component:
 
-   import { NgxJsonEditorComponent } from 'ngx-json-editor';
+   import { NgxJsonEditorComponent } from '@vasimhayat007/ngx-json-editor';
    // template: <ngx-json-editor [(content)]="data" />
 `;
 
 /**
- * `ng add ngx-json-editor` — add the peer dependencies a typical setup needs and
+ * `ng add @vasimhayat007/ngx-json-editor` — add the peer dependencies a typical setup needs and
  * print guidance for wiring PrimeNG/animations. Idempotent: existing deps are
  * left untouched.
  */

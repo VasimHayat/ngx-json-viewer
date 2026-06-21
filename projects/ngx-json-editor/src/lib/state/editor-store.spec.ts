@@ -1,4 +1,4 @@
-import { ValidationError } from 'ngx-json-editor/core';
+import { ValidationError } from '@vasimhayat007/ngx-json-editor/core';
 import { EditorStore } from './editor-store';
 
 describe('EditorStore', () => {

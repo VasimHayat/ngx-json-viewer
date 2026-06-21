@@ -7,7 +7,7 @@ import {
   getValueType,
   isJsonArray,
   tableModel,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 import { EditorStore } from '../../state/editor-store';
 import { AutofocusDirective } from '../../directives/autofocus.directive';
 

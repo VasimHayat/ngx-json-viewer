@@ -5,7 +5,7 @@ import {
   getValueType,
   isContainer,
   pathToPointer,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 
 /**
  * A single visible row in the flattened tree projection. The tree virtualizes

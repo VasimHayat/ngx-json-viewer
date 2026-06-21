@@ -1,4 +1,4 @@
-import { JsonValue } from 'ngx-json-editor/core';
+import { JsonValue } from '@vasimhayat007/ngx-json-editor/core';
 import { diffStructural, diffToPatch, summarizeDiff } from './diff';
 import { applyPatch, deepEqual } from './patch';
 

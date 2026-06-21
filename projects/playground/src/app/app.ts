@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { JsonEditorContent, NgxJsonWorkspaceComponent } from 'ngx-json-editor';
+import { JsonEditorContent, NgxJsonWorkspaceComponent } from '@vasimhayat007/ngx-json-editor';
 
 /** Left demo document (a config-style payload). */
 const LEFT: JsonEditorContent = {

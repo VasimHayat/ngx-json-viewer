@@ -1,20 +1,24 @@
 # ngx-json-editor
 
+> Published on npm as **[`@vasimhayat007/ngx-json-editor`](https://www.npmjs.com/package/@vasimhayat007/ngx-json-editor)**.
+
 A production-grade, themeable **JSON editor for Angular** with **tree**, **text**, and **table** modes — feature parity with [jsoneditoronline.org](https://jsoneditoronline.org), built on standalone components, signals, `OnPush` change detection, PrimeNG, and CodeMirror 6.
 
 [![CI](https://github.com/VasimHayat/ngx-json-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/VasimHayat/ngx-json-viewer/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/VasimHayat/ngx-json-viewer/blob/main/LICENSE)
 [![Angular](https://img.shields.io/badge/Angular-20%20%7C%2021-dd0031?logo=angular&logoColor=white)](https://angular.dev)
-[![core bundle](https://img.shields.io/badge/core-43.5%20KB%20gz-success)](./PARITY.md)
+[![core bundle](https://img.shields.io/badge/core-43.5%20KB%20gz-success)](https://github.com/VasimHayat/ngx-json-viewer/blob/main/PARITY.md)
 [![a11y](https://img.shields.io/badge/axe-0%20serious%20%2F%20critical-success)](#accessibility)
 
 <p align="center">
-  <img src="./image.png" alt="ngx-json-editor showing text and tree modes side by side with a structural compare panel" width="100%">
+  <img src="https://raw.githubusercontent.com/VasimHayat/ngx-json-viewer/main/image.png" alt="ngx-json-editor showing text and tree modes side by side with a structural compare panel" width="100%">
 </p>
 
 > **Status — `0.x`, public API stable from `0.1`.** This is a phased build; the
-> feature-parity matrix in [`PARITY.md`](./PARITY.md) tracks what is implemented
-> and tested, and the project stays on `0.x` until every row is ✅.
+> feature-parity matrix in
+> [`PARITY.md`](https://github.com/VasimHayat/ngx-json-viewer/blob/main/PARITY.md)
+> tracks what is implemented and tested, and the project stays on `0.x` until
+> every row is ✅.
 
 ## Table of contents
 
@@ -30,8 +34,6 @@ A production-grade, themeable **JSON editor for Angular** with **tree**, **text*
 - [Performance](#performance)
 - [Accessibility](#accessibility)
 - [Documentation](#documentation)
-- [Development](#development)
-- [Contributing](#contributing)
 - [License](#license)
 
 ## Highlights
@@ -135,7 +137,7 @@ export class MyEditor {
 
 > `[(content)]` two-way binding uses the model's implicit `contentChange`; the
 > rich event carrying errors and the JSON Patch is `(documentChange)`. See
-> [ARCHITECTURE.md](./ARCHITECTURE.md#8-recorded-decisions--deviations-from-the-spec)
+> [ARCHITECTURE.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/ARCHITECTURE.md#8-recorded-decisions--deviations-from-the-spec)
 > for the rationale.
 
 ### Imperative methods
@@ -249,7 +251,7 @@ loaded only when text mode is first shown — tree/table-only apps never pay for
 
 Measured by benchmark specs (headless Chrome, dev laptop) and printed to the
 test log on every run, so numbers don't drift silently. Full detail in
-[PERF.md](./PERF.md).
+[PERF.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/PERF.md).
 
 | Budget                                      | Target        | Measured                                   |
 | ------------------------------------------- | ------------- | ------------------------------------------ |
@@ -263,35 +265,16 @@ rows, and CDK virtual scroll keeps only visible rows in the DOM.
 ## Accessibility
 
 ARIA `tree`/`treegrid` roles, fully keyboard-navigable controls, and reactive
-light/dark theming. `axe-core` reports **0 serious/critical** issues
-(`a11y.spec.ts`).
+light/dark theming. `axe-core` reports **0 serious/critical** issues.
 
 ## Documentation
 
-- [ARCHITECTURE.md](./ARCHITECTURE.md) — design, state/patch model, adapters.
-- [PERF.md](./PERF.md) — performance budgets and measured numbers.
-- [PARITY.md](./PARITY.md) — feature → code → test matrix.
-- [THIRD_PARTY.md](./THIRD_PARTY.md) — dependencies and licenses.
-- [CHANGELOG.md](./CHANGELOG.md) — release history.
-
-## Development
-
-```bash
-npm start            # serve the playground
-npm run build        # build library + playground
-npm test             # unit/component tests (headless Chrome) with coverage
-npm run lint         # ESLint + Angular ESLint + template a11y
-npm run typecheck    # strict type check, no emit
-npm run docs         # generate Compodoc API docs
-```
-
-## Contributing
-
-Issues and pull requests are welcome. Before opening a PR, please run
-`npm run lint`, `npm run typecheck`, and `npm test` — the same checks that CI
-enforces. New features should land with tests and a corresponding row in
-[`PARITY.md`](./PARITY.md).
+- [ARCHITECTURE.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/ARCHITECTURE.md) — design, state/patch model, adapters.
+- [PERF.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/PERF.md) — performance budgets and measured numbers.
+- [PARITY.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/PARITY.md) — feature → code → test matrix.
+- [THIRD_PARTY.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/THIRD_PARTY.md) — dependencies and licenses.
+- [CHANGELOG.md](https://github.com/VasimHayat/ngx-json-viewer/blob/main/CHANGELOG.md) — release history.
 
 ## License
 
-Released under the [MIT License](https://opensource.org/licenses/MIT).
+Released under the [MIT License](https://github.com/VasimHayat/ngx-json-viewer/blob/main/LICENSE).

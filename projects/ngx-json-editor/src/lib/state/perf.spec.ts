@@ -1,4 +1,4 @@
-import { JsonValue, parseJson, tableModel } from 'ngx-json-editor/core';
+import { JsonValue, parseJson, tableModel } from '@vasimhayat007/ngx-json-editor/core';
 import { flattenTree } from './tree-model';
 
 /**

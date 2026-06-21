@@ -1,4 +1,4 @@
-import { JsonValue, ValidationError } from 'ngx-json-editor/core';
+import { JsonValue, ValidationError } from '@vasimhayat007/ngx-json-editor/core';
 
 /**
  * A JSON Schema document (draft-07 / 2019-09 / 2020-12 — whichever the injected

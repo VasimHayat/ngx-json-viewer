@@ -4,7 +4,7 @@ import {
   JsonValue,
   RepairResult,
   ValidationError,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 
 /** The three runtime-switchable editor modes. */
 export type EditorMode = 'tree' | 'text' | 'table';

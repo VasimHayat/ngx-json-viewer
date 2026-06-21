@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
-import { FilterOperator, JsonValue, SortBy, buildJmespathQuery } from 'ngx-json-editor/core';
+import { FilterOperator, JsonValue, SortBy, buildJmespathQuery } from '@vasimhayat007/ngx-json-editor/core';
 import { EditorStore } from '../../state/editor-store';
 import {
   CLIPBOARD_ADAPTER,

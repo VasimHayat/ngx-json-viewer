@@ -26,7 +26,7 @@ import {
   repairJson,
   searchJson,
   sortJson,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 import { EditorMode, JsonEditorContent, isTextContent } from '../models/editor-content';
 import { JsonSchema, ValidatorFn } from '../models/schema';
 import { allContainerPointers } from './tree-model';

@@ -1,4 +1,4 @@
-import { JsonPath, JsonValue, JsonValueType } from 'ngx-json-editor/core';
+import { JsonPath, JsonValue, JsonValueType } from '@vasimhayat007/ngx-json-editor/core';
 import { EditorMode } from './editor-content';
 
 /**

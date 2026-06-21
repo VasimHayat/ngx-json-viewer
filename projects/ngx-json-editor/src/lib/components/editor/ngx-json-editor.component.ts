@@ -16,7 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { TooltipModule } from 'primeng/tooltip';
 import { AutofocusDirective } from '../../directives/autofocus.directive';
 import { IconComponent } from '../icon/icon.component';
-import { JsonPath, JsonValue, ValidationError, pathToDisplay } from 'ngx-json-editor/core';
+import { JsonPath, JsonValue, ValidationError, pathToDisplay } from '@vasimhayat007/ngx-json-editor/core';
 import { CLIPBOARD_ADAPTER, FILE_ADAPTER, QUERY_ENGINE } from '../../adapters/tokens';
 import {
   DEFAULT_I18N,

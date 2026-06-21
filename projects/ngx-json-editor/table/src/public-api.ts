@@ -3,5 +3,5 @@
  *
  * The framework-free table column model, importable on its own.
  */
-export { tableModel, isTabular } from 'ngx-json-editor/core';
-export type { TableModel } from 'ngx-json-editor/core';
+export { tableModel, isTabular } from '@vasimhayat007/ngx-json-editor/core';
+export type { TableModel } from '@vasimhayat007/ngx-json-editor/core';

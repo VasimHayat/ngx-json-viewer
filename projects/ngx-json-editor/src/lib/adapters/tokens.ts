@@ -9,8 +9,8 @@ import {
   diffToPatch,
   queryJmespath,
   repairJson,
-} from 'ngx-json-editor/core';
-import { JsonPatchOperation } from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
+import { JsonPatchOperation } from '@vasimhayat007/ngx-json-editor/core';
 
 /**
  * Adapter contracts and DI tokens. Every side-effecting capability the editor

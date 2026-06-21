@@ -1,5 +1,5 @@
 {
-  "name": "ngx-json-editor",
+  "name": "@vasimhayat007/ngx-json-editor",
   "version": "0.1.0",
   "description": "Production-grade, themeable JSON editor for Angular (tree / text / table modes) with feature parity to jsoneditoronline.org.",
   "keywords": [

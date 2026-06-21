@@ -19,7 +19,7 @@ import {
   isPathPrefix,
   pathToDisplay,
   pathToPointer,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 import { EditorStore } from '../../state/editor-store';
 import { TreeRow, containerSummary, flattenTree } from '../../state/tree-model';
 import { AutofocusDirective } from '../../directives/autofocus.directive';

@@ -1,4 +1,4 @@
-import { JsonPatch, JsonValue } from 'ngx-json-editor/core';
+import { JsonPatch, JsonValue } from '@vasimhayat007/ngx-json-editor/core';
 import { applyPatch, deepEqual, invertPatch } from './patch';
 
 /** Apply a patch and assert success, returning the resulting document. */

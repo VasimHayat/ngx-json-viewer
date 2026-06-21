@@ -16,7 +16,7 @@ import {
   diffToPatch,
   parseJson,
   pointerToPath,
-} from 'ngx-json-editor/core';
+} from '@vasimhayat007/ngx-json-editor/core';
 import { JsonEditorContent, isTextContent } from '../../models/editor-content';
 import { NgxJsonEditorComponent } from '../editor/ngx-json-editor.component';
 import { IconComponent } from '../icon/icon.component';
