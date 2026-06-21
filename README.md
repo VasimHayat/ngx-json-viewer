@@ -88,6 +88,58 @@ Imperative methods (via a template ref): `expandAll`, `collapseAll`, `format`,
 `compact`, `repair`, `undo`, `redo`, `focus`, `validate`, `get`, `set`,
 `transform`.
 
+## Recipes
+
+**Schema validation** — errors surface on tree nodes and the status bar:
+
+```ts
+schema = signal<JsonSchema>({
+  type: 'object',
+  required: ['name'],
+  properties: { name: { type: 'string' }, age: { type: 'number', minimum: 0 } },
+});
+// <ngx-json-editor [(content)]="data" [schema]="schema()" />
+```
+
+**Read-only viewer**:
+
+```html
+<ngx-json-editor [content]="{ json: data }" [readOnly]="true" mode="tree" />
+```
+
+**Custom validation** (errors returned as values, never thrown):
+
+```ts
+validator: ValidatorFn = (value) =>
+  isObject(value) && !('id' in value)
+    ? [{ path: [], message: 'Missing id', severity: 'error' }]
+    : [];
+// <ngx-json-editor [(content)]="data" [validator]="validator" />
+```
+
+**Compare two documents** — open the Compare dialog from the toolbar, or use the
+framework-free diff directly:
+
+```ts
+import { diffStructural, summarizeDiff } from 'ngx-json-editor/compare';
+const diff = diffStructural(a, b);
+const { added, removed, changed } = summarizeDiff(diff);
+```
+
+**Custom fetch / file adapter** (the library never calls the network itself):
+
+```ts
+import { FETCH_ADAPTER, FILE_ADAPTER } from 'ngx-json-editor';
+
+providers: [{ provide: FETCH_ADAPTER, useValue: { fetchText: (url) => myHttp.get(url) } }];
+```
+
+**Disable features** via `config`:
+
+```ts
+// <ngx-json-editor [config]="{ features: { transform: false, compare: false } }" />
+```
+
 ## Keyboard shortcuts
 
 | Shortcut                            | Action                         |

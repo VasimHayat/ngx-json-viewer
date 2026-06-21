@@ -5,9 +5,12 @@
     "ng": "ng",
     "start": "ng serve playground",
     "build": "ng build ngx-json-editor && ng build playground",
-    "build:lib": "ng build ngx-json-editor",
+    "build:lib": "ng build ngx-json-editor && npm run build:schematics",
+    "build:schematics": "tsc -p projects/ngx-json-editor/schematics/tsconfig.json && node -e \"require('fs').copyFileSync('projects/ngx-json-editor/schematics/collection.json','dist/ngx-json-editor/schematics/collection.json')\"",
     "build:lib:watch": "ng build ngx-json-editor --watch --configuration development",
     "build:playground": "ng build playground",
+    "docs": "compodoc -p projects/ngx-json-editor/tsconfig.lib.json -n \"ngx-json-editor\" -d dist/docs --hideGenerator",
+    "bundlesize": "node scripts/check-bundle-size.js",
     "watch": "ng build ngx-json-editor --watch --configuration development",
     "test": "npm run test:core && npm run test:lib",
     "test:core": "ng test ngx-json-editor-core --watch=false --browsers=ChromeHeadless --code-coverage",
@@ -17,7 +20,7 @@
     "lint": "eslint .",
     "format": "prettier --write \"projects/**/*.{ts,html,scss,json}\"",
     "format:check": "prettier --check \"projects/**/*.{ts,html,scss}\"",
-    "typecheck": "tsc -p projects/ngx-json-editor/tsconfig.lib.json --noEmit && tsc -p projects/playground/tsconfig.app.json --noEmit"
+    "typecheck": "tsc -p projects/ngx-json-editor/tsconfig.lib.json --noEmit --inlineSources false --sourceMap false && tsc -p projects/playground/tsconfig.app.json --noEmit"
   },
   "prettier": {
     "printWidth": 100,

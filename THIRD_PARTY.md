@@ -29,7 +29,9 @@ identifiers; verify against each package's `LICENSE` before redistribution.
 | prettier, eslint-config-prettier          | MIT                    | Formatting                  |
 | tailwindcss, postcss, autoprefixer        | MIT                    | Playground layout utilities |
 | karma, jasmine, karma-\*                  | MIT                    | Unit/component test runner  |
-| @playwright/test                          | Apache-2.0             | E2E (Phase 6)               |
+| axe-core                                  | MPL-2.0                | Accessibility testing       |
+| @compodoc/compodoc                        | MIT                    | API documentation site      |
+| @playwright/test                          | Apache-2.0             | E2E (not yet authored)      |
 
 ## Behavioral references (NOT dependencies, NOT copied)
 

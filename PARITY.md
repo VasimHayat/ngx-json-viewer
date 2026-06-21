@@ -61,22 +61,22 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 
 ## 3.6 UX / quality-of-life
 
-| Feature                       | Status | Implementation        | Tests                  |
-| ----------------------------- | ------ | --------------------- | ---------------------- |
-| Keyboard shortcuts map | ✅ | editor `onKeydown` (undo/redo/find/format/compact) + tree keys; README documents them | component spec |
-| Light / dark theme + tokens | ✅ | `styles/_tokens.scss`; reactive dark incl. CodeMirror | component renders both |
-| Responsive / split-pane | 🟡 | host flex layout, toolbar wraps; split-pane is host layout | |
-| i18n (injectable strings) | ✅ | `models/i18n.ts` merged via `i18n` input → editor + dialogs | component spec |
-| Accessibility (WCAG AA, aria) | ✅ | aria roles, focusable controls, keyboard nav; **axe 0 serious/critical** | `a11y.spec.ts` |
+| Feature                       | Status | Implementation                                                                        | Tests                  |
+| ----------------------------- | ------ | ------------------------------------------------------------------------------------- | ---------------------- |
+| Keyboard shortcuts map        | ✅     | editor `onKeydown` (undo/redo/find/format/compact) + tree keys; README documents them | component spec         |
+| Light / dark theme + tokens   | ✅     | `styles/_tokens.scss`; reactive dark incl. CodeMirror                                 | component renders both |
+| Responsive / split-pane       | 🟡     | host flex layout, toolbar wraps; split-pane is host layout                            |                        |
+| i18n (injectable strings)     | ✅     | `models/i18n.ts` merged via `i18n` input → editor + dialogs                           | component spec         |
+| Accessibility (WCAG AA, aria) | ✅     | aria roles, focusable controls, keyboard nav; **axe 0 serious/critical**              | `a11y.spec.ts`         |
 
 ## §7 Non-functional
 
-| Item | Status | Evidence |
-| --- | --- | --- |
-| Performance budgets met & reported | ✅ | PERF.md — 1 MB parse ~11 ms / flatten ~18 ms (budget 300 ms); `perf.spec.ts` |
-| a11y axe zero serious/critical | ✅ | `a11y.spec.ts` (axe-core) |
-| Web-worker offloading | 🟡 | `HEAVY_COMPUTE` token (main-thread default, worker-safe core, host-providable); ARCHITECTURE §6 |
-| Code editor lazy-loaded | ✅ | CodeMirror dynamic-import chunk (~115 KB transfer) |
+| Item                               | Status | Evidence                                                                                        |
+| ---------------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| Performance budgets met & reported | ✅     | PERF.md — 1 MB parse ~11 ms / flatten ~18 ms (budget 300 ms); `perf.spec.ts`                    |
+| a11y axe zero serious/critical     | ✅     | `a11y.spec.ts` (axe-core)                                                                       |
+| Web-worker offloading              | 🟡     | `HEAVY_COMPUTE` token (main-thread default, worker-safe core, host-providable); ARCHITECTURE §6 |
+| Code editor lazy-loaded            | ✅     | CodeMirror dynamic-import chunk (~115 KB transfer)                                              |
 
 ## Foundations (not a §3 row, but required)
 
@@ -84,6 +84,20 @@ Legend: ✅ done & tested · 🟡 partial · ⬜ not started
 | ---------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------- | ---------------------- |
 | Framework-free core engine (parse, repair, patch, diff, sort, query, schema) | ✅     | `core/src/lib/*` — 93.8% stmts, 100% fns, 84.9% branches (75 specs)   | `core/**/*.spec.ts`    |
 | Framework-free core types                                                    | ✅     | `core/types.ts`, `value-type.ts`, `json-pointer.ts`, `patch-types.ts` | `*.spec.ts`            |
-| Library builds (ng-packagr, 2 entry points)                                  | ✅     | `ng-package.json` + `core/ng-package.json`                            | CI build step          |
+| Library builds (ng-packagr, 5 entry points)                                  | ✅     | primary + `/core` `/transform` `/compare` `/table`                    | CI build step          |
 | Playground renders the editor                                                | ✅     | `projects/playground`                                                 | build + component spec |
 | Lint / format / typecheck                                                    | ✅     | `eslint.config.js`, prettier                                          | CI                     |
+
+## §9 Packaging
+
+| Item                                                                  | Status | Evidence                                                              |
+| --------------------------------------------------------------------- | ------ | --------------------------------------------------------------------- |
+| Secondary entry points                                                | ✅     | `/core` `/transform` `/compare` `/table` in the `exports` map         |
+| Peer deps (Angular/PrimeNG/Ajv/jmespath/codemirror)                   | ✅     | library `package.json`; nothing heavy in `dependencies` (only tslib)  |
+| `ng add` schematic                                                    | ✅     | `schematics/` (collection + ng-add); built into dist                  |
+| Docs: README / ARCHITECTURE / PARITY / THIRD_PARTY / PERF / CHANGELOG | ✅     | repo root                                                             |
+| Compodoc API docs                                                     | ✅     | `npm run docs` (CI step)                                              |
+| `npm pack` consumable                                                 | ✅     | `npm run pack:lib` → 21-file tarball with fesm/types/schematics/theme |
+| Bundle-size budget (core < 120 KB gz)                                 | ✅     | **43.5 KB gz**; `npm run bundlesize` (CI step)                        |
+| E2E (Playwright)                                                      | ⬜     | not yet authored — known gap (see below)                              |
+| TSDoc on public API                                                   | ✅     | inline TSDoc throughout `core` + models + component                   |

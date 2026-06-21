@@ -33,6 +33,33 @@ via tsconfig `paths` in dev/test and via ng-packagr at build time.
 
 `core (no Angular) → state (signals) → ui (components)`.
 
+```
+                 ┌─────────────────────────────────────────────┐
+   host app ───► │  NgxJsonEditorComponent (shell + toolbar)    │
+   [(content)]   │   ├─ TextModeComponent ──► CodeMirrorAdapter │ (lazy chunk)
+   inputs/outputs│   ├─ TreeModeComponent  (CDK virtual scroll) │
+                 │   ├─ TableModeComponent (CDK virtual scroll) │
+                 │   ├─ DialogsComponent (sort/filter/transform/│
+                 │   │                     import)              │
+                 │   └─ CompareComponent (structural diff)      │
+                 └───────────────┬─────────────────────────────┘
+                                 │ inject
+                          ┌──────▼───────┐     ┌──────────────────────────┐
+                          │ EditorStore  │     │ DI tokens (adapters):     │
+                          │ (signals,    │◄────│ CODE_EDITOR / FETCH /     │
+                          │  history,    │     │ FILE / CLIPBOARD /        │
+                          │  projections)│     │ QUERY_ENGINE / HEAVY_*    │
+                          └──────┬───────┘     └──────────────────────────┘
+                                 │ calls (pure, sync)
+            ┌────────────────────▼─────────────────────────────┐
+            │ ngx-json-editor/core  (NO Angular, NO DOM)        │
+            │ parse · repair · patch(+invert) · diff · sort ·   │
+            │ query(JMESPath) · schema(Ajv) · search · table ·  │
+            │ json-pointer · value-type · types                 │
+            └───────────────────────────────────────────────────┘
+            secondary entry points: /core /transform /compare /table
+```
+
 The `core/` entry point has **zero** Angular or DOM imports, so the parser,
 repair, JSON Patch, diff, sort, schema, and query logic are unit-testable in
 isolation and reusable inside a Web Worker. This is enforced by the entry-point

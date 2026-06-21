@@ -40,8 +40,14 @@ jobs:
       - name: Build playground
         run: npm run build:playground
 
+      - name: Bundle-size budget (core < 120 KB gz)
+        run: npm run bundlesize
+
       - name: Pack (verify publishable artifact)
         run: npm run pack:lib
+
+      - name: Compodoc (API docs)
+        run: npm run docs
 
   e2e:
     name: E2E (Playwright)
